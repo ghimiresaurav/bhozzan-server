@@ -4,7 +4,7 @@
   "description": "Server, built on TypeScript, for the bhozzan mobile app",
   "main": "dist/index.js",
   "scripts": {
-    "watch-ts": "tsc -- watch --preserveWatchOutput",
+    "watch-ts": "tsc --watch --preserveWatchOutput",
     "tsc": "tsc",
     "start:dev": "NODE_ENV=dev nodemon dist/index.js",
     "start": "NODE_ENV=prod node dist/index.js"
