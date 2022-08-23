@@ -1,21 +1,19 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-
-import register from "./Controllers/register";
+import connectDB from "./db/connectDB";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
-
-//import controllers
-
 const app: Application = express();
 
-app.use(express.json());
-app.use(cors({ origin: process.env.CLIENT }));
+connectDB();
 
-app.post("/register", register);
-// app.post("/login", login);
+app.use(express.json({ limit: "1mb" }));
+// app.use(cors({ origin: process.env.CLIENT }));
 
-const PORT: number = parseInt(<string>process.env.PORT) || 5000;
+app.use("/user", userRoutes);
+
+const PORT: number = parseInt(<string>process.env.PORT) || 7000;
 
 app.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));
