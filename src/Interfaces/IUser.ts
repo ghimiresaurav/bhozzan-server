@@ -12,6 +12,7 @@ export interface IUserRegistrationDTO extends IUserDTO {
 	lastName: string;
 	address: string;
 	role: roleEnum;
+	restaurant?: mongoose.Schema.Types.ObjectId;
 }
 
 export interface IUser extends IUserRegistrationDTO, mongoose.Document {

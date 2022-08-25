@@ -2,12 +2,14 @@ import { Schema, model } from "mongoose";
 import { roleEnum } from "../enums/roleEnum";
 import { IUser } from "../Interfaces/IUser";
 import bcrypt from "bcrypt";
+const { ObjectId } = Schema.Types;
 
 const userSchema = new Schema<IUser>(
 	{
 		phoneNumber: {
 			type: Number,
 			required: true,
+			unique: true,
 		},
 		password: {
 			type: String,
@@ -55,9 +57,26 @@ const userSchema = new Schema<IUser>(
 			type: Number,
 			default: 0,
 		},
+		restaurant: {
+			type: ObjectId,
+			ref: "Restaurant",
+		},
 	},
 	{ timestamps: true }
 );
+
+userSchema.pre("save", async function (this, next) {
+	// Make sure the primary phone number is not used by any user
+	const userWithSamePhoneNumber: IUser | null = await User.findOne({
+		phoneNumber: this.phoneNumber,
+	});
+
+	if (userWithSamePhoneNumber) {
+		const error: Error = new Error("Phone number is already in use");
+		next(error);
+	}
+	next();
+});
 
 // Middlewares
 userSchema.pre("save", async function (next) {

@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 
-export interface IRestaurant {
-  managerId: mongoose.Schema.Types.ObjectId;
-  name: string;
-  foodList: Array<mongoose.Schema.Types.ObjectId | string>;
-  address: string;
-  rating: number;
-  tables: Array<mongoose.Schema.Types.ObjectId | string>;
-  isVerified: boolean;
-  PAN: number;
-  phoneNumbers: Array<number>;
+export interface IRestaurantDTO {
+	name: string;
+	address: string;
+	PAN: number;
+	primaryPhoneNumber: number;
+	phoneNumbers?: Array<number>;
+}
+export interface IRestaurant extends IRestaurantDTO, mongoose.Document {
+	foodList: Array<mongoose.Schema.Types.ObjectId | string>;
+	rating: number;
+	tables: Array<mongoose.Schema.Types.ObjectId | string>;
+	isVerified: boolean;
 }
