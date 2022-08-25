@@ -2,16 +2,12 @@ import { RequestHandler } from "express";
 import User from "../Models/User.model";
 import { IUser, IUserDTO, IUserRegistrationDTO } from "../Interfaces/IUser";
 import jwt from "jsonwebtoken";
+import errorHandlers from "../utils/error-handlers";
 
 export const registerUser: RequestHandler = async (req, res) => {
 	try {
 		// Extract user input from request
 		const userData: IUserRegistrationDTO = req.body;
-
-		// Check whether the email is already registered or not
-		const userExists: IUser | null = await User.findOne({ phoneNumber: userData.phoneNumber });
-
-		if (userExists) return res.status(409).json({ message: "The phone number is already in use." });
 
 		// Create an instance of User
 		const user: IUser = new User(userData);
@@ -25,7 +21,7 @@ export const registerUser: RequestHandler = async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).send(error);
+		return res.status(500).send(errorHandlers(error));
 	}
 };
 
@@ -57,6 +53,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
 		return res.json({
 			token,
 			id: user._id,
+			role: user.role,
 		});
 	} catch (error) {
 		console.error(error);
