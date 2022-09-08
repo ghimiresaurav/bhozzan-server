@@ -13,7 +13,7 @@ const restaurantSchema = new Schema<IRestaurant>({
 		maxlength: 50,
 		trim: true,
 	},
-	foodList: {
+	dishes: {
 		type: [ObjectId],
 		default: [],
 		ref: "Dish",

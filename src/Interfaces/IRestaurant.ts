@@ -8,7 +8,7 @@ export interface IRestaurantDTO {
 	phoneNumbers?: Array<number>;
 }
 export interface IRestaurant extends IRestaurantDTO, mongoose.Document {
-	foodList: Array<mongoose.Schema.Types.ObjectId | string>;
+	dishes: Array<mongoose.Schema.Types.ObjectId | string>;
 	rating: number;
 	tables: Array<mongoose.Schema.Types.ObjectId | string>;
 	isVerified: boolean;
