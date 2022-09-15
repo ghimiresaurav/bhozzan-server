@@ -13,7 +13,7 @@ const app: Application = express();
 connectDB();
 
 app.use(express.json({ limit: "1mb" }));
-// app.use(cors({ origin: process.env.CLIENT }));
+app.use(cors({ origin: "*" }));
 
 app.use("/user", userRoute);
 app.use("/restaurant", restaurantRoute);
