@@ -13,4 +13,8 @@ export interface IRestaurant extends IRestaurantDTO, mongoose.Document {
 	tables: Array<mongoose.Schema.Types.ObjectId | string>;
 	isVerified: boolean;
 	noOfShippers: number;
+	shippers: {
+		count: number;
+		limit: number;
+	};
 }

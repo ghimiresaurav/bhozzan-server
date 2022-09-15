@@ -48,9 +48,15 @@ const restaurantSchema = new Schema<IRestaurant>({
 	phoneNumbers: {
 		type: [Number],
 	},
-	noOfShippers: {
-		type: Number,
-		default: 0,
+	shippers: {
+		type: {
+			count: Number,
+			limit: Number,
+		},
+		default: {
+			count: 0,
+			limit: 0,
+		},
 	},
 });
 
