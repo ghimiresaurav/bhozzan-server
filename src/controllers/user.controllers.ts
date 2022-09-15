@@ -57,6 +57,6 @@ export const handleLogin: RequestHandler = async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).send(error);
+		return res.status(500).send(errorHandlers(error));
 	}
 };

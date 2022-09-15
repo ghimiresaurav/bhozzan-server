@@ -5,6 +5,7 @@ import { IUserRegistrationDTO } from "../Interfaces/IUser";
 import Restaurant from "../Models/Restaurant.model";
 import User from "../Models/User.model";
 import errorHandlers from "../utils/error-handlers";
+import isValidObjectId from "../utils/isValidObjectId";
 
 export const registerRestaurant: RequestHandler = async (req, res) => {
 	try {
@@ -25,6 +26,8 @@ export const registerRestaurant: RequestHandler = async (req, res) => {
 export const getRestaurantDetails: RequestHandler = async (req, res) => {
 	try {
 		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID.");
+
 		const restaurant: IRestaurant | null = await Restaurant.findById(restaurantId)
 			.populate("dishes")
 			.populate("tables");
