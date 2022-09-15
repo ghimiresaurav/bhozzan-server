@@ -19,10 +19,20 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 	}
 };
 
-export const isManager = async (req: Request, res: Response, next: NextFunction) => {
+export const isShipper = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { role }: IUser = req.user;
 		if (rolePowerEnum[role] > rolePowerEnum[roleEnum.CUSTOMER]) return next();
+		throw new Error();
+	} catch (error) {
+		return res.status(401).json({ error: "Not enough permission" });
+	}
+};
+
+export const isManager = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const { role }: IUser = req.user;
+		if (rolePowerEnum[role] > rolePowerEnum[roleEnum.SHIPPER]) return next();
 		throw new Error();
 	} catch (error) {
 		return res.status(401).json({ error: "Not enough permission" });

@@ -48,6 +48,10 @@ const restaurantSchema = new Schema<IRestaurant>({
 	phoneNumbers: {
 		type: [Number],
 	},
+	noOfShippers: {
+		type: Number,
+		default: 0,
+	},
 });
 
 // Validate
@@ -82,7 +86,7 @@ restaurantSchema.post("save", async function (doc, next) {
 			firstName: abbreviatedRestaurantName,
 			lastName: "Manager",
 			phoneNumber: doc.primaryPhoneNumber,
-			password: `m@${abbreviatedRestaurantName}`,
+			password: `man@${abbreviatedRestaurantName}`,
 			role: roleEnum.MANAGER,
 			address: doc.address,
 			restaurant: doc._id,

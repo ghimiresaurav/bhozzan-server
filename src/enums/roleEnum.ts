@@ -1,11 +1,13 @@
 export enum roleEnum {
 	CUSTOMER = "customer",
+	SHIPPER = "shipper",
 	MANAGER = "manager",
 	ADMIN = "admin",
 }
 
 export enum rolePowerEnum {
 	customer = 5,
-	manager = 10,
-	admin = 15,
+	shipper = 10,
+	manager = 15,
+	admin = 20,
 }
