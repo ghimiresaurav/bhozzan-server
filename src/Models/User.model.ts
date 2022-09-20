@@ -1,8 +1,12 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Model } from "mongoose";
 import { roleEnum } from "../enums/roleEnum";
 import { IUser } from "../Interfaces/IUser";
 import bcrypt from "bcrypt";
 const { ObjectId } = Schema.Types;
+
+interface IUserModel extends Model<IUser> {
+	findByCredentials: (phoneNumber: number, password: string) => Promise<IUser | null>;
+}
 
 const userSchema = new Schema<IUser>(
 	{
@@ -108,5 +112,5 @@ userSchema.statics.findByCredentials = async (
 	}
 };
 
-const User = model<IUser>("User", userSchema);
+const User = model<IUser, IUserModel>("User", userSchema);
 export default User;
