@@ -42,7 +42,8 @@ export const getRestaurantDetails: RequestHandler = async (req, res) => {
 export const addShipper: RequestHandler = async (req, res) => {
 	try {
 		const restaurantId = req.user.restaurant;
-		const restaurant: IRestaurant = await Restaurant.findById(restaurantId);
+		const restaurant: IRestaurant | null = await Restaurant.findById(restaurantId);
+		if (!restaurant) return res.status(404).send("Restaurant Not Found");
 
 		// Check if the restaurant can add more shippers
 		if (restaurant.shippers.count >= restaurant.shippers.limit)

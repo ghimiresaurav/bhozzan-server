@@ -7,10 +7,9 @@ import errorHandlers from "../utils/error-handlers";
 export const addNewTable: RequestHandler = async (req, res) => {
 	try {
 		const restaurantId = req.user.restaurant;
-		const tableData: ITableDTO = req.body;
+		const tableData: ITable = { ...req.body, restaurantId };
 
-		const tableInfo: ITable = { ...tableData, restaurantId };
-		const table = new Table(tableInfo);
+		const table = new Table(tableData);
 		await table.save();
 
 		// Also save the table's id to the restaurant's tables list
