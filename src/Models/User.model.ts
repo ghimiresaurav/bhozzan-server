@@ -1,9 +1,13 @@
-import { Schema, model, Model } from "mongoose";
+import mongoose, { Schema, model, Model } from "mongoose";
 import { roleEnum } from "../enums/roleEnum";
 import { IUser } from "../Interfaces/IUser";
 import bcrypt from "bcrypt";
-const { ObjectId } = Schema.Types;
 
+// Use the run validaotrs plugin to run validators on update
+import { runValidators } from "./plugins/runValidators.plugin";
+mongoose.plugin(runValidators);
+
+const { ObjectId } = Schema.Types;
 interface IUserModel extends Model<IUser> {
 	findByCredentials: (phoneNumber: number, password: string) => Promise<IUser | null>;
 }
