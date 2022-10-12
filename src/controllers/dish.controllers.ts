@@ -3,12 +3,13 @@ import { IDish, IDishDTO } from "../Interfaces/IDish";
 import Dish from "../Models/Dish.model";
 import Restaurant from "../Models/Restaurant.model";
 import errorHandlers from "../utils/error-handlers";
+import isValidObjectId from "../utils/isValidObjectId";
 
 export const addNewDish: RequestHandler = async (req, res) => {
 	try {
 		// Get the id of the restaurant
 		const restaurantId = req.user.restaurant;
-		const dishData: IDish = { ...req.body, restaurantId };
+		const dishData: IDish = { ...req.body, restaurant: restaurantId };
 
 		// Include the restaurant id in the dish info before saving to the database
 		const dish = new Dish(dishData);
@@ -19,7 +20,7 @@ export const addNewDish: RequestHandler = async (req, res) => {
 			$push: { dishes: dish._id },
 		});
 
-		return res.json({ message: "New Dish Added Successfully" });
+		return res.json({ message: "New Dish Added Successfully", dish });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -27,13 +28,77 @@ export const addNewDish: RequestHandler = async (req, res) => {
 };
 
 export const viewAllDishes: RequestHandler = async (req, res) => {
-	// 	try {
-	// 		console.log(req.originalUrl);
-	// 		const restaurantId = req.params.restaurant;
-	// 		const dishes: IDish[] = await Dish.find({ restaurantId });
-	// 		return res.json({ dishes });
-	// 	} catch (error) {
-	// 		console.error(error);
-	// 		return res.status(500).send(errorHandlers(error));
-	// 	}
+	try {
+		const dishes = await Dish.find({}).populate("restaurant");
+		if (!dishes) return res.status(404).send("Dishes not found");
+
+		return res.json({ dishes });
+	} catch (error) {}
+};
+
+export const viewDishesByRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
+
+		const dishes: IDish[] | null = await Dish.find({ restaurant: restaurantId });
+		if (!dishes) return res.status(404).send("Dishes not Found");
+
+		return res.json({ message: "Dishes of specified restaurant", dishes });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const viewDishById: RequestHandler = async (req, res) => {
+	try {
+		const { dishId }: { dishId?: string } = req.params;
+		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
+
+		const dish: IDish | null = await Dish.findById(dishId).populate("restaurant");
+		if (!dish) return res.status(404).send("Dish not found");
+
+		return res.json({ dish });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const updateDish: RequestHandler = async (req, res) => {
+	try {
+		const { dishId }: { dishId?: string } = req.params;
+		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
+
+		const updatedDishData: IDish = req.body;
+		const updatedDish: IDish | null = await Dish.findOneAndUpdate(
+			{ _id: dishId, restaurant: req.user.restaurant },
+			{ $set: updatedDishData }
+		);
+		if (!updatedDish) return res.status(404).send("Dish not found!");
+
+		return res.json({ message: "Dish updated successfully", updatedDish });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const deleteDishById: RequestHandler = async (req, res) => {
+	try {
+		const { dishId }: { dishId?: string } = req.params;
+		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
+
+		const deletedDish = await Dish.findOneAndDelete({
+			_id: dishId,
+			restaurant: req.user.restaurant,
+		});
+
+		if (!deletedDish) return res.status(404).send("Dish not found");
+		return res.json({ message: "Dish deleted successfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
 };

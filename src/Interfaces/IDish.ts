@@ -7,5 +7,5 @@ export interface IDishDTO {
 	imageLink: string;
 }
 export interface IDish extends IDishDTO, mongoose.Document {
-	restaurantId: mongoose.Schema.Types.ObjectId;
+	restaurant: mongoose.Schema.Types.ObjectId;
 }
