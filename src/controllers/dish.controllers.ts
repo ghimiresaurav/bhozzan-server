@@ -88,6 +88,7 @@ export const updateDish: RequestHandler = async (req, res) => {
 export const deleteDishById: RequestHandler = async (req, res) => {
 	try {
 		const { dishId }: { dishId?: string } = req.params;
+		const restaurantId = req.user.restaurant;
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const deletedDish = await Dish.findOneAndDelete({
@@ -96,6 +97,11 @@ export const deleteDishById: RequestHandler = async (req, res) => {
 		});
 
 		if (!deletedDish) return res.status(404).send("Dish not found");
+
+		await Restaurant.findByIdAndUpdate(restaurantId, {
+			$pull: { dishes: dishId },
+		});
+
 		return res.json({ message: "Dish deleted successfully" });
 	} catch (error) {
 		console.error(error);
