@@ -1,8 +1,8 @@
 import { RequestHandler } from "express";
 import User from "../Models/User.model";
 import { IUser, IUserDTO, IUserRegistrationDTO } from "../Interfaces/IUser";
-import Orders from "../Models/Order.model";
-import { IOrders } from "../Interfaces/IOrder";
+// import Orders from "../Models/Order.model";
+// import { IOrder } from "../Interfaces/IOrder";
 import jwt from "jsonwebtoken";
 import errorHandlers from "../utils/error-handlers";
 
@@ -63,23 +63,34 @@ export const handleLogin: RequestHandler = async (req, res) => {
 	}
 };
 
-export const order: RequestHandler = async (req, res) => {
+// export const order: RequestHandler = async (req, res) => {
+// 	try {
+// 		const userId = req.user.id;
+// 		const order: IOrder | null = await Orders.findOne({ userId });
+
+// 		// Create new entry if first time order
+// 		if (!order) {
+// 			const order: IOrder = new Orders({ userId, dishes: req.body });
+// 			await order.save();
+// 		}
+
+// 		// Else update existing entry
+// 		await Orders.findOneAndUpdate(userId, {
+// 			$push: { dishes: req.body },
+// 		});
+
+// 		return res.json({ message: "New Order Added Successfully" });
+// 	} catch (error) {
+// 		console.error(error);
+// 		return res.status(500).send(errorHandlers(error));
+// 	}
+// };
+
+export const getMyDetails: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user.id;
-		const order: IOrders | null = await Orders.findOne({ userId });
-
-		// Create new entry if first time order
-		if (!order) {
-			const order: IOrders = new Orders({ userId, dishes: req.body });
-			await order.save();
-		}
-
-		// Else update existing entry
-		await Orders.findOneAndUpdate(userId, {
-			$push: { dishes: req.body },
-		});
-
-		return res.json({ message: "New Order Added Successfully" });
+		const user = req.user;
+		if (!user) return res.status(400).send("Login to see your details");
+		return res.json({ user });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
