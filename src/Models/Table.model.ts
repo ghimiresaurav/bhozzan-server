@@ -15,18 +15,13 @@ const tableSchema = new Schema<ITable>({
 		type: Number,
 		required: true,
 	},
-	// reservedBy: {
-	//   type: ObjectId,
-	//   required: true,
-	// },
-	// isReserved: {
-	// 	type: Boolean,
-	// 	default: false,
-	// },
-	// reservedUntil: {
-	// 	type: Date,
-	// 	required: true,
-	// },
+	reservations: {
+		type: [ObjectId],
+	},
+	isReserved: {
+		type: Boolean,
+		default: false,
+	},
 	// position: {
 	// 	type: String,
 	// 	required: true,

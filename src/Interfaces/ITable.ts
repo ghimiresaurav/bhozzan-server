@@ -7,7 +7,6 @@ export interface ITableDTO {
 }
 export interface ITable extends ITableDTO, mongoose.Document {
 	restaurantId: mongoose.Schema.Types.ObjectId;
-	// reservedBy: mongoose.Schema.Types.ObjectId;
-	// isReserved: boolean;
-	// reservedUntil: Date;
+	reservations: Array<mongoose.Schema.Types.ObjectId | string>;
+	isReserved: boolean;
 }
