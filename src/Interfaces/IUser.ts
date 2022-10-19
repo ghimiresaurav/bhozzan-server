@@ -18,5 +18,6 @@ export interface IUserRegistrationDTO extends IUserDTO {
 export interface IUser extends IUserRegistrationDTO, mongoose.Document {
 	rewardPoints: number;
 	revokedRewardPoints: number;
+	favorites: Array<mongoose.Schema.Types.ObjectId | string>;
 	debt: number;
 }

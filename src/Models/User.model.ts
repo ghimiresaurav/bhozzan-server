@@ -61,6 +61,10 @@ const userSchema = new Schema<IUser>(
 			type: Number,
 			default: 0,
 		},
+		favorites: {
+			type: [ObjectId],
+			default: [],
+		},
 		debt: {
 			type: Number,
 			default: 0,

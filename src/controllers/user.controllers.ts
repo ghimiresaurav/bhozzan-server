@@ -2,9 +2,13 @@ import { RequestHandler } from "express";
 import User from "../Models/User.model";
 import { IUser, IUserDTO, IUserRegistrationDTO } from "../Interfaces/IUser";
 import Orders from "../Models/Order.model";
-import { IOrders } from "../Interfaces/IOrder";
+// import { IOrders } from "../Interfaces/IOrder";
+import Restaurant from "../Models/Restaurant.model";
 import jwt from "jsonwebtoken";
 import errorHandlers from "../utils/error-handlers";
+import isValidObjectId from "../utils/isValidObjectId";
+import { ObjectId } from "mongoose";
+import { IRestaurant } from "../Interfaces/IRestaurant";
 
 export const registerUser: RequestHandler = async (req, res) => {
 	try {
@@ -63,23 +67,61 @@ export const handleLogin: RequestHandler = async (req, res) => {
 	}
 };
 
-export const order: RequestHandler = async (req, res) => {
+// export const order: RequestHandler = async (req, res) => {
+// 	try {
+// 		const userId = req.user.id;
+// 		const order: IOrders | null = await Orders.findOne({ userId });
+
+// 		// Create new entry if first time order
+// 		if (!order) {
+// 			const order: IOrders = new Orders({ userId, dishes: req.body });
+// 			await order.save();
+// 		}
+
+// 		// Else update existing entry
+// 		await Orders.findOneAndUpdate(userId, {
+// 			$push: { dishes: req.body },
+// 		});
+
+// 		return res.json({ message: "New Order Added Successfully" });
+// 	} catch (error) {
+// 		console.error(error);
+// 		return res.status(500).send(errorHandlers(error));
+// 	}
+// };
+
+export const favoriteRestaurant: RequestHandler = async (req, res) => {
 	try {
 		const userId = req.user.id;
-		const order: IOrders | null = await Orders.findOne({ userId });
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
-		// Create new entry if first time order
-		if (!order) {
-			const order: IOrders = new Orders({ userId, dishes: req.body });
-			await order.save();
-		}
+		const user = await User.find({ _id: userId, favorites: restaurantId });
 
-		// Else update existing entry
-		await Orders.findOneAndUpdate(userId, {
-			$push: { dishes: req.body },
-		});
+		if (user.length) return res.json({ message: "The restaurant is already your favorite" });
 
-		return res.json({ message: "New Order Added Successfully" });
+		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
+
+		return res.json({ message: "Restaurant Favorited Sucessfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const myFavorites: RequestHandler = async (req, res) => {
+	try {
+		const userId = req.user.id;
+		const favoritedIds = await User.findById(userId, { favorites: 1, _id: 0 });
+
+		if (!favoritedIds) return res.json({ message: "No favorite restaurant" });
+
+		const favoriteRestaurants = await Restaurant.find(
+			{ _id: { $in: favoritedIds.favorites } },
+			{ name: 1, address: 1 }
+		);
+
+		return res.json({ favoriteRestaurants, message: "Favorite Restaurants Showed Sucessfully" });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
