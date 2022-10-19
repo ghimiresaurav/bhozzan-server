@@ -1,8 +1,8 @@
 import { RequestHandler } from "express";
 import User from "../Models/User.model";
 import { IUser, IUserDTO, IUserRegistrationDTO } from "../Interfaces/IUser";
-import Orders from "../Models/Order.model";
-// import { IOrders } from "../Interfaces/IOrder";
+// import Orders from "../Models/Order.model";
+// // import { IOrder } from "../Interfaces/IOrder";
 import Restaurant from "../Models/Restaurant.model";
 import jwt from "jsonwebtoken";
 import errorHandlers from "../utils/error-handlers";
@@ -120,8 +120,18 @@ export const myFavorites: RequestHandler = async (req, res) => {
 			{ _id: { $in: favoritedIds.favorites } },
 			{ name: 1, address: 1 }
 		);
-
 		return res.json({ favoriteRestaurants, message: "Favorite Restaurants Showed Sucessfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const getMyDetails: RequestHandler = async (req, res) => {
+	try {
+		const user = req.user;
+		if (!user) return res.status(400).send("Login to see your details");
+		return res.json({ user });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

@@ -23,6 +23,30 @@ export const registerRestaurant: RequestHandler = async (req, res) => {
 	}
 };
 
+export const getRestaurants: RequestHandler = async (req, res) => {
+	try {
+		const restaurants = await Restaurant.find({ isVerified: true })
+			.populate("dishes")
+			.select("-shippers");
+		if (!restaurants) return res.status(404).send("Restaurants not found");
+		return res.json({ message: "All restaurants", restaurants });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const getAllRestaurants: RequestHandler = async (req, res) => {
+	try {
+		const restaurants = await Restaurant.find();
+		if (!restaurants) return res.status(404).send("Restaurants not found");
+		return res.json({ message: "All restaurants", restaurants });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
 export const getRestaurantDetails: RequestHandler = async (req, res) => {
 	try {
 		const { restaurantId }: { restaurantId?: string } = req.params;

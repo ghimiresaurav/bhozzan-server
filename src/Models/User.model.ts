@@ -22,6 +22,7 @@ const userSchema = new Schema<IUser>(
 		password: {
 			type: String,
 			required: true,
+			select: false,
 		},
 		firstName: {
 			type: String,
@@ -106,7 +107,7 @@ userSchema.statics.findByCredentials = async (
 ): Promise<IUser | null> => {
 	try {
 		// Find the user by phone number
-		const user: IUser | null = await User.findOne({ phoneNumber });
+		const user: IUser | null = await User.findOne({ phoneNumber }).select("+password");
 		if (!user) throw new Error("User does not exist");
 
 		// Check if password matches
