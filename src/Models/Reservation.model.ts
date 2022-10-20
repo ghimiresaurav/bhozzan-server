@@ -7,6 +7,10 @@ const reservationSchema = new Schema<IReservation>({
 		type: ObjectId,
 		required: true,
 	},
+	restaurantId: {
+		type: ObjectId,
+		required: true,
+	},
 	reservedBy: {
 		type: ObjectId,
 		required: true,
