@@ -7,6 +7,7 @@ import {
 	verifyRestaurant,
 	refuteRestaurant,
 	searchRestaurantsByName,
+	updateRestaurant,
 } from "../controllers/restaurant.controllers";
 import { addShipper } from "../controllers/restaurant.controllers";
 import { isAdmin, isAuthenticated, isManager } from "../middlewares/auth.middleware";
@@ -24,6 +25,7 @@ router.use(isAuthenticated);
 // ----------------------------MANAGER ROUTE------------------------------------
 router.use(isManager);
 router.post("/add-shipper", addShipper);
+router.put("/update", updateRestaurant);
 
 // ----------------------------ADMIN ROUTE--------------------------------------
 router.use(isAdmin);

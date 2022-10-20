@@ -144,10 +144,26 @@ export const searchRestaurantsByName: RequestHandler = async (req, res) => {
 		if (!searchQuery) return res.status(400).json({ message: "Invalid Search Query" });
 
 		const query = generateRegex(searchQuery);
-		const restaurants = await Restaurant.find({ name: { $regex: query } });
+		const restaurants = await Restaurant.find({ name: { $regex: query } }).select("-shippers");
 		if (!restaurants) return res.status(404).json({ message: "Restaurants not found" });
 
 		return res.json({ message: "Restaurants with matching names.", restaurants });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const updateRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const updatedRestaurantData = req.body;
+		// Manager can only update their own restaurant
+		const restaurant: IRestaurant | null = await Restaurant.findByIdAndUpdate(req.user.restaurant, {
+			$set: updatedRestaurantData,
+		});
+		if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
+
+		return res.json({ message: "Restaurant updated successfully" });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
