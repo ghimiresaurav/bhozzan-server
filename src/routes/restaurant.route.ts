@@ -6,6 +6,7 @@ import {
 	getAllRestaurants,
 	verifyRestaurant,
 	refuteRestaurant,
+	searchRestaurantsByName,
 } from "../controllers/restaurant.controllers";
 import { addShipper } from "../controllers/restaurant.controllers";
 import { isAdmin, isAuthenticated, isManager } from "../middlewares/auth.middleware";
@@ -15,6 +16,7 @@ const router: Router = Router();
 router.post("/register", registerRestaurant);
 router.get("/list", getRestaurants);
 router.get("/:restaurantId", getRestaurantDetails);
+router.get("/search/:searchQuery", searchRestaurantsByName);
 
 // ----------------------------AUTHENTICATED USER ROUTE-------------------------
 router.use(isAuthenticated);

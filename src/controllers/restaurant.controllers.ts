@@ -5,6 +5,7 @@ import { IUserRegistrationDTO } from "../Interfaces/IUser";
 import Restaurant from "../Models/Restaurant.model";
 import User from "../Models/User.model";
 import errorHandlers from "../utils/error-handlers";
+import { generateRegex } from "../utils/generateRegex";
 import isValidObjectId from "../utils/isValidObjectId";
 
 export const registerRestaurant: RequestHandler = async (req, res) => {
@@ -131,6 +132,22 @@ export const refuteRestaurant: RequestHandler = async (req, res) => {
 		if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
 		return res.json({ message: "Restaurant Refuted Successfully.", restaurant });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const searchRestaurantsByName: RequestHandler = async (req, res) => {
+	try {
+		const { searchQuery }: { searchQuery?: string } = req.params;
+		if (!searchQuery) return res.status(400).json({ message: "Invalid Search Query" });
+
+		const query = generateRegex(searchQuery);
+		const restaurants = await Restaurant.find({ name: { $regex: query } });
+		if (!restaurants) return res.status(404).json({ message: "Restaurants not found" });
+
+		return res.json({ message: "Restaurants with matching names.", restaurants });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
