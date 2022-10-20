@@ -36,23 +36,36 @@ export const createReservation: RequestHandler = async (req, res) => {
 
 		const previousReservations = await Reservation.find({
 			tableId,
+			// Make sure to include colliding reservations
 			$or: [
 				{
+					// Non-overlappting
+					// New reservation starts during existing reservation
 					$and: [
 						{ reservedSince: { $lte: reservationData.reservedSince } },
 						{ reservedUntil: { $gt: reservationData.reservedSince } },
 					],
 				},
 				{
+					// New reservation ends during existing reservation
 					$and: [
-						{ reservedSince: { $gt: reservationData.reservedUntil } },
-						{ reservedUntil: { $lte: reservationData.reservedUntil } },
+						{ reservedSince: { $lt: reservationData.reservedUntil } },
+						{ reservedUntil: { $gte: reservationData.reservedUntil } },
 					],
 				},
 				{
+					// Overlaping
+					// Existing reservation is within new reservation
 					$and: [
 						{ reservedSince: { $gt: reservationData.reservedSince } },
 						{ reservedUntil: { $lt: reservationData.reservedUntil } },
+					],
+				},
+				{
+					// New reservation is within or same as existing reservation
+					$and: [
+						{ reservedSince: { $lte: reservationData.reservedSince } },
+						{ reservedUntil: { $gte: reservationData.reservedUntil } },
 					],
 				},
 			],
