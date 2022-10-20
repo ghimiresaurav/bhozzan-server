@@ -97,3 +97,42 @@ export const addShipper: RequestHandler = async (req, res) => {
 		return res.status(500).send(errorHandlers(error));
 	}
 };
+
+export const verifyRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId))
+			return res.status(400).json({ message: "Invalid Restaurant id" });
+
+		const restaurant = await Restaurant.findOneAndUpdate(
+			{ _id: restaurantId, isVerified: false },
+			{ $set: { isVerified: true } }
+		);
+		if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
+
+		return res.json({ message: "Restaurant Verified Successfully.", restaurant });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+// Undoes verification
+export const refuteRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId))
+			return res.status(400).json({ message: "Invalid Restaurant id" });
+
+		const restaurant = await Restaurant.findOneAndUpdate(
+			{ _id: restaurantId, isVerified: true },
+			{ $set: { isVerified: false } }
+		);
+		if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
+
+		return res.json({ message: "Restaurant Refuted Successfully.", restaurant });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};

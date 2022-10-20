@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export interface IReservationDTO {
-	tableId: mongoose.Schema.Types.ObjectId;
+	tableId: mongoose.Schema.Types.ObjectId | string;
 	reservedSince: Date;
 	reservedUntil: Date;
 }

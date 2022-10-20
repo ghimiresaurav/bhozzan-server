@@ -6,6 +6,7 @@ import userRoute from "./routes/user.route";
 import restaurantRoute from "./routes/restaurant.route";
 import dishRoute from "./routes/dish.route";
 import tableRoute from "./routes/table.route";
+import reservationRoute from "./routes/reservation.route";
 
 dotenv.config();
 const app: Application = express();
@@ -19,6 +20,7 @@ app.use("/user", userRoute);
 app.use("/restaurant", restaurantRoute);
 app.use("/dish", dishRoute);
 app.use("/table", tableRoute);
+app.use("/reservation", reservationRoute);
 
 const PORT: number = parseInt(<string>process.env.PORT) || 7000;
 
