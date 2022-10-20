@@ -25,5 +25,24 @@ const reservationSchema = new Schema<IReservation>({
 	},
 });
 
+reservationSchema.pre("save", async function (this, next) {
+	// Make sure the reservedSince field is greater than current time
+	const rn = new Date();
+
+	const since = new Date(this.reservedSince);
+	const until = new Date(this.reservedUntil);
+
+	if (since <= rn) {
+		const error: Error = new Error("Invalid starting time.");
+		next(error);
+	}
+	if (until <= since) {
+		const error: Error = new Error("Invalid ending time.");
+		next(error);
+	}
+
+	next();
+});
+
 const Reservation = model<IReservation>("Reservation", reservationSchema);
 export default Reservation;
