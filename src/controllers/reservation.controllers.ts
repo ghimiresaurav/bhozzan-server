@@ -85,3 +85,21 @@ export const createReservation: RequestHandler = async (req, res) => {
 // }
 
 // export const getReservationById: Reque
+
+export const getReservationsByRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		console.log(restaurantId);
+		if (!isValidObjectId(restaurantId))
+			return res.status(400).json({ message: "Invalid Table id" });
+
+		const reservations = await Reservation.find({ restaurantId });
+		console.log(reservations);
+		if (!reservations.length) return res.status(404).json({ message: "Reservations not found" });
+
+		return res.json({ message: "Reservations of specifed restaurant", reservations });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
