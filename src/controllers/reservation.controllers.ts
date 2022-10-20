@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { IReservation, IReservationDTO } from "../Interfaces/IReservation";
 import Reservation from "../Models/Reservation.model";
+import Restaurant from "../Models/Restaurant.model";
 import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
@@ -28,6 +29,9 @@ export const createReservation: RequestHandler = async (req, res) => {
 		const table = await Table.findById(tableId);
 		if (!table) return res.status(404).send("Table not found");
 
+		const restaurantId = await Restaurant.findById(table.restaurantId);
+		if (!restaurantId) return res.status(404).send("Restaurant not found");
+
 		const reservationData: IReservationDTO = req.body;
 
 		const previousReservations = await Reservation.find({
@@ -45,6 +49,12 @@ export const createReservation: RequestHandler = async (req, res) => {
 						{ reservedUntil: { $lte: reservationData.reservedUntil } },
 					],
 				},
+				{
+					$and: [
+						{ reservedSince: { $gt: reservationData.reservedSince } },
+						{ reservedUntil: { $lt: reservationData.reservedUntil } },
+					],
+				},
 			],
 		});
 
@@ -60,6 +70,7 @@ export const createReservation: RequestHandler = async (req, res) => {
 		const reservation: IReservation = new Reservation({
 			...reservationData,
 			reservedBy: req.user._id,
+			restaurantId,
 			cost,
 		});
 		await reservation.save();
