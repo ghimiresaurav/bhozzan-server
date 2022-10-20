@@ -52,37 +52,51 @@ export const deleteTable: RequestHandler = async (req, res) => {
 
 export const reserveTable: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user._id;
-		const { tableId, reservedSince, reservedUntil } = req.body;
+		const reservedBy = req.user._id;
 
-		const table = await Table.findById(tableId);
+		const table = await Table.findById(req.body.tableId);
 		if (!table) return res.status(404).send("Table not found");
+
+		const restaurantId = await Restaurant.findById(table.restaurantId);
+		const cost: Number =
+			(new Date(req.body.reservedUntil).getHours() - new Date(req.body.reservedSince).getHours()) *
+			table.rate;
 
 		const previousReservations = await Reservation.find({
 			_id: { $in: table.reservations },
-			$or: [{ reservedSince: { $gte: reservedUntil } }, { reservedUntil: { $lte: reservedSince } }],
+			$or: [
+				{
+					$and: [
+						{ reservedSince: { $lt: req.body.reservedUntil } },
+						{ reservedUntil: { $gte: req.body.reservedUntil } },
+					],
+				},
+				{
+					$and: [
+						{ reservedSince: { $lte: req.body.reservedSince } },
+						{ reservedUntil: { $gt: req.body.reservedSince } },
+					],
+				},
+				{
+					$and: [
+						{ reservedSince: { $gt: req.body.reservedSince } },
+						{ reservedUntil: { $lt: req.body.reservedUntil } },
+					],
+				},
+			],
 		});
 
-		if (!previousReservations.length) {
+		if (previousReservations.length)
 			return res.json({ message: "Table is unavaliable at this time" });
-		}
 
-		const totalTime = new Date(reservedUntil).getHours() - new Date(reservedSince).getHours();
-		const cost = totalTime * table.rate;
+		const reservationData: IReservation = { ...req.body, reservedBy, restaurantId, cost };
 
-		const reservations: IReservation = new Reservation({
-			tableId: tableId,
-			reservedBy: userId,
-			reservedSince: reservedSince,
-			reservedUntil: reservedUntil,
-			cost: cost,
-		});
-
+		const reservations = new Reservation(reservationData);
 		await reservations.save();
-		table.reservations.push(reservations._id);
-		await table.save();
 
-		return res.json({ message: "!!! Table Reserved Successfully" });
+		await Table.findByIdAndUpdate(req.body.tableId, { $push: { reservations: reservations._id } });
+
+		return res.json({ message: "Table Reserved Successfully" });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

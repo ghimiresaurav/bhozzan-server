@@ -7,6 +7,7 @@ export interface IReservationDTO {
 }
 
 export interface IReservation extends IReservationDTO, mongoose.Document {
+	restaurantId: mongoose.Schema.Types.ObjectId;
 	reservedBy: mongoose.Schema.Types.ObjectId;
 	cost: number;
 }
