@@ -20,10 +20,6 @@ const dishSchema = new Schema<IDish>({
 		type: Number,
 		required: true,
 	},
-	imageLink: {
-		type: String,
-		required: true,
-	},
 });
 
 const Dish = model<IDish>("Dish", dishSchema);

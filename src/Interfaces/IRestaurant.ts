@@ -6,6 +6,7 @@ export interface IRestaurantDTO {
 	PAN: number;
 	primaryPhoneNumber: number;
 	phoneNumbers?: Array<number>;
+	imageLink?: Array<string>;
 }
 export interface IRestaurant extends IRestaurantDTO, mongoose.Document {
 	dishes: Array<mongoose.Schema.Types.ObjectId | string>;

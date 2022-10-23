@@ -9,7 +9,7 @@ export const addToBasket: RequestHandler = async (req, res) => {
 		const { dishId }: { dishId?: string } = req.params;
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
-		const userId = req.user;
+		const userId = req.user._id;
 		if (!userId) return res.status(400).send("User not found");
 
 		const basket = await Basket.findOne({ userId });
@@ -40,7 +40,7 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 		const { dishId }: { dishId?: string } = req.params;
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
-		const userId = req.user;
+		const userId = req.user._id;
 		if (!userId) return res.status(400).send("User not found");
 
 		await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
@@ -54,7 +54,7 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 
 export const getBasketDishes: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user;
+		const userId = req.user._id;
 		if (!userId) return res.status(400).send("User not found");
 
 		const basket = await Basket.find({ userId });

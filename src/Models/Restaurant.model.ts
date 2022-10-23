@@ -48,6 +48,9 @@ const restaurantSchema = new Schema<IRestaurant>({
 	phoneNumbers: {
 		type: [Number],
 	},
+	imageLink: {
+		type: [String],
+	},
 	shippers: {
 		type: {
 			count: Number,
