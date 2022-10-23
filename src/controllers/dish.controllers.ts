@@ -41,7 +41,9 @@ export const viewDishesByRestaurant: RequestHandler = async (req, res) => {
 		const { restaurantId }: { restaurantId?: string } = req.params;
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
-		const dishes: IDish[] | null = await Dish.find({ restaurant: restaurantId });
+		const dishes: IDish[] | null = await Dish.find({ restaurant: restaurantId }).sort({
+			category: 1,
+		});
 		if (!dishes) return res.status(404).send("Dishes not Found");
 
 		return res.json({ message: "Dishes of specified restaurant", dishes });
@@ -103,6 +105,20 @@ export const deleteDishById: RequestHandler = async (req, res) => {
 		});
 
 		return res.json({ message: "Dish deleted successfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const viewDishesByCategory: RequestHandler = async (req, res) => {
+	try {
+		const { category }: { category?: string } = req.params;
+
+		const dishes: IDish[] | null = await Dish.find({ category });
+		if (!dishes) return res.status(404).send("No Dishes in this Categories");
+
+		return res.json({ message: "Dishes of specified category", dishes });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

@@ -5,6 +5,7 @@ import {
 	updateDish,
 	viewAllDishes,
 	viewDishById,
+	viewDishesByCategory,
 	viewDishesByRestaurant,
 } from "../controllers/dish.controllers";
 import { isAuthenticated, isManager } from "../middlewares/auth.middleware";
@@ -14,6 +15,7 @@ const router: Router = Router();
 router.get("/", viewAllDishes);
 router.get("/:dishId", viewDishById);
 router.get("/restaurant/:restaurantId", viewDishesByRestaurant);
+router.get("/category/:category", viewDishesByCategory);
 
 router.use(isAuthenticated, isManager);
 
