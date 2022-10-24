@@ -115,7 +115,10 @@ export const viewDishesByCategory: RequestHandler = async (req, res) => {
 	try {
 		const { category }: { category?: string } = req.params;
 
-		const dishes: IDish[] | null = await Dish.find({ category });
+		const dishes: IDish[] | null = await Dish.find({ category }).populate(
+			"restaurant",
+			"name address"
+		);
 		if (!dishes) return res.status(404).send("No Dishes in this Categories");
 
 		return res.json({ message: "Dishes of specified category", dishes });

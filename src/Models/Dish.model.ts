@@ -6,6 +6,7 @@ const dishSchema = new Schema<IDish>({
 	restaurant: {
 		type: ObjectId,
 		required: true,
+		ref: "Restaurant",
 	},
 	name: {
 		type: String,
