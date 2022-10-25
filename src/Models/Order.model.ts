@@ -8,6 +8,10 @@ const dishOrderSchema = new Schema<IDishOrder>({
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
 	},
+	rate: {
+		type: Number,
+		required: true,
+	},
 	quantity: {
 		type: Number,
 		required: true,
@@ -36,6 +40,10 @@ const orderSchema = new Schema<IOrder>(
 			type: String,
 			enum: orderStatusEnum,
 			default: orderStatusEnum.PENDING,
+		},
+		restaurant: {
+			type: ObjectId,
+			required: true,
 		},
 	},
 	{
