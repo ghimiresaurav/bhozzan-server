@@ -67,3 +67,32 @@ export const placeOrder: RequestHandler = async (req, res) => {
 		return res.status(500).json({ error: errorHandlers(error) });
 	}
 };
+
+// This is for shippers and restaurant managers
+export const getRestaurantOrders: RequestHandler = async (req, res) => {
+	try {
+		const orders = await Order.find({ restaurant: req.user.restaurant });
+		if (!orders) return res.status(404).json({ message: "Orders not found" });
+
+		return res.json({ message: "Orders to your restaurant", orders });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
+
+// This is for customers to view their orders
+export const getOrders: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.CUSTOMER)
+			return res.status(400).json({ message: "Invalid user role" });
+
+		const orders = await Order.find({ userId: req.user._id });
+		if (!orders) return res.status(404).json({ message: "Orders not found" });
+
+		return res.json({ message: "Your Orders", orders });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
