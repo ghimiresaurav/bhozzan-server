@@ -6,10 +6,12 @@ const basketSchema = new Schema<IBasket>({
 	userId: {
 		type: ObjectId,
 		required: true,
+		ref: "User",
 	},
 	dishes: {
 		type: [ObjectId],
 		required: true,
+		ref: "Dish",
 	},
 });
 

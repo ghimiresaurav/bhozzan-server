@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { roleEnum } from "../enums/roleEnum";
 import { IBasket } from "../Interfaces/IBasket";
 import Basket from "../Models/Basket.model";
 import errorHandlers from "../utils/error-handlers";
@@ -6,12 +7,12 @@ import isValidObjectId from "../utils/isValidObjectId";
 
 export const addToBasket: RequestHandler = async (req, res) => {
 	try {
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
+
 		const { dishId }: { dishId?: string } = req.params;
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const userId = req.user._id;
-		if (!userId) return res.status(400).send("User not found");
-
 		const basket = await Basket.findOne({ userId });
 
 		if (!basket) {
@@ -41,8 +42,6 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const userId = req.user._id;
-		if (!userId) return res.status(400).send("User not found");
-
 		await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
 
 		return res.json({ message: "Dish removed from basket successfully" });
@@ -54,10 +53,10 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 
 export const getBasketDishes: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user._id;
-		if (!userId) return res.status(400).send("User not found");
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
 
-		const basket = await Basket.find({ userId });
+		const userId = req.user._id;
+		const basket = await Basket.findOne({ userId }).populate("dishes");
 
 		return res.json({ message: "Basket dishes of user", basket });
 	} catch (error) {
