@@ -92,13 +92,30 @@ export const handleLogin: RequestHandler = async (req, res) => {
 
 export const favoriteRestaurant: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = req.user._id;
 		const { restaurantId }: { restaurantId?: string } = req.params;
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
-		const user = await User.find({ _id: userId, favorites: restaurantId });
+		const user = await User.findOne({ _id: userId, favorites: restaurantId });
+		if (user) return res.json({ message: "The restaurant is already your favorite" });
 
-		if (user.length) return res.json({ message: "The restaurant is already your favorite" });
+		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
+
+		return res.json({ message: "Restaurant Favorited Sucessfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const removeFromFavorite: RequestHandler = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
+
+		const user = await User.findOne({ _id: userId, favorites: restaurantId });
+		if (!user) return res.json({ message: "The restaurant is already your favorite" });
 
 		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
 
@@ -111,8 +128,8 @@ export const favoriteRestaurant: RequestHandler = async (req, res) => {
 
 export const myFavorites: RequestHandler = async (req, res) => {
 	try {
-		const userId = req.user.id;
-		const favoritedIds = await User.findById(userId, { favorites: 1, _id: 0 });
+		const userId = req.user._id;
+		const favoritedIds = await User.findById(userId, { favorites: 1 });
 
 		if (!favoritedIds) return res.json({ message: "No favorite restaurant" });
 
