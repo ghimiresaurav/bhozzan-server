@@ -83,7 +83,7 @@ export const createReservation: RequestHandler = async (req, res) => {
 		const reservation: IReservation = new Reservation({
 			...reservationData,
 			reservedBy: req.user._id,
-			restaurantId,
+			restaurantId, //reservation object
 			cost,
 		});
 		await reservation.save();
@@ -110,10 +110,32 @@ export const createReservation: RequestHandler = async (req, res) => {
 
 // export const getReservationById: Reque
 
+export const cancleReservation: RequestHandler = async (req, res) => {
+	try {
+		const { reservationId }: { reservationId?: string } = req.params;
+		if (!isValidObjectId(reservationId))
+			return res.status(400).json({ message: "Invalid Table Id" });
+
+		const reservation: IReservation | null = await Reservation.findById(reservationId);
+		if (!reservation) return res.status(404).json({ message: "Reservations not found" });
+
+		if (reservation.reservedSince.getTime() - new Date().getTime() <= 3600000)
+			return res.json({ message: "Unable to cancle reservation" });
+
+		await Table.findByIdAndUpdate(reservation.tableId, { $pull: { reservations: reservationId } });
+		await Reservation.findByIdAndRemove(reservationId);
+
+		return res.json({ message: "Reservation cancle successfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
 export const getReservationsByRestaurant: RequestHandler = async (req, res) => {
 	try {
 		const { restaurantId }: { restaurantId?: string } = req.params;
-		console.log(restaurantId);
+
 		if (!isValidObjectId(restaurantId))
 			return res.status(400).json({ message: "Invalid Table id" });
 
