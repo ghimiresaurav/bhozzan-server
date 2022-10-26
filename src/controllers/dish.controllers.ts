@@ -4,6 +4,7 @@ import Dish from "../Models/Dish.model";
 import Restaurant from "../Models/Restaurant.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
+import mongoose from "mongoose";
 
 export const addNewDish: RequestHandler = async (req, res) => {
 	try {
@@ -39,14 +40,37 @@ export const viewAllDishes: RequestHandler = async (req, res) => {
 export const viewDishesByRestaurant: RequestHandler = async (req, res) => {
 	try {
 		const { restaurantId }: { restaurantId?: string } = req.params;
-		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
+		if (!restaurantId || !isValidObjectId(restaurantId))
+			return res.status(400).send("Invalid Restaurant ID");
 
-		const dishes: IDish[] | null = await Dish.find({ restaurant: restaurantId }).sort({
-			category: 1,
+		const result = await Dish.aggregate([
+			{
+				$match: {
+					restaurant: { $eq: new mongoose.Types.ObjectId(restaurantId) },
+				},
+			},
+			{
+				$group: {
+					_id: "$category",
+					dishes: {
+						$push: "$$ROOT",
+					},
+				},
+			},
+		]);
+
+		if (!result) return res.status(404).send("Dishes not Found");
+
+		if (!result.length)
+			return res.json({
+				message: "Dishes of specified restaurant",
+				dishes: result,
+			});
+
+		return res.json({
+			message: "Dishes of specified restaurant",
+			result,
 		});
-		if (!dishes) return res.status(404).send("Dishes not Found");
-
-		return res.json({ message: "Dishes of specified restaurant", dishes });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
