@@ -172,7 +172,7 @@ export const dispatchOrder: RequestHandler = async (req, res) => {
 	}
 };
 
-export const completeDelivery: RequestHandler = async (req, res) => {
+export const deliverOrder: RequestHandler = async (req, res) => {
 	try {
 		if (req.user.role === roleEnum.ADMIN)
 			return res.status(401).json({ messaage: "Invalid User Role" });
@@ -194,6 +194,32 @@ export const completeDelivery: RequestHandler = async (req, res) => {
 		if (!order) return res.status(404).json({ message: "Order not found" });
 
 		return res.json({ message: "Delivery Completed.", order });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
+
+export const cancelOrder: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.CUSTOMER)
+			return res.status(401).json({ message: "Invalid User Role" });
+
+		const { orderId }: { orderId?: string } = req.params;
+		if (!orderId || !isValidObjectId(orderId))
+			return res.status(400).json({ message: "Invalid Order id" });
+
+		// Update order status to canceled
+		const order = await Order.findOneAndUpdate(
+			// Make sure the order was placed by the requesting user
+			{ _id: orderId, userId: req.user._id, status: { $in: [orderStatusEnum.PENDING] } },
+			{
+				$set: { status: orderStatusEnum.CANCELED },
+			}
+		);
+		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		return res.json({ message: "Order Canceled Successfully", order });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: errorHandlers(error) });
