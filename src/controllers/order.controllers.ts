@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { orderStatusEnum } from "../enums/orderStatusEnum";
 import { roleEnum } from "../enums/roleEnum";
 import { IDish } from "../Interfaces/IDish";
 import Dish from "../Models/Dish.model";
@@ -91,6 +92,48 @@ export const getOrders: RequestHandler = async (req, res) => {
 		if (!orders) return res.status(404).json({ message: "Orders not found" });
 
 		return res.json({ message: "Your Orders", orders });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
+
+export const acceptOrder: RequestHandler = async (req, res) => {
+	try {
+		const { orderId }: { orderId?: string } = req.params;
+		if (!orderId || !isValidObjectId(orderId))
+			return res.status(400).json({ message: "Invalid Order id" });
+
+		const order = await Order.findOneAndUpdate(
+			// 	// Make sure the order is to the same restaurant as the requesing user's
+			// 	// Also make sure the order is pending
+			{ _id: orderId, restaurant: req.user.restaurant, status: orderStatusEnum.PENDING },
+			{ $set: { status: orderStatusEnum.ACCEPTED } }
+		);
+		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		return res.json({ message: "Order has been accepted successfully.", order });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
+
+export const rejectOrder: RequestHandler = async (req, res) => {
+	try {
+		const { orderId }: { orderId?: string } = req.params;
+		if (!orderId || !isValidObjectId(orderId))
+			return res.status(400).json({ message: "Invalid Order id" });
+
+		const order = await Order.findOneAndUpdate(
+			// 	// Make sure the order is to the same restaurant as the requesing user's
+			// 	// Also make sure the order is pending
+			{ _id: orderId, restaurant: req.user.restaurant, status: orderStatusEnum.PENDING },
+			{ $set: { status: orderStatusEnum.REJECTED } }
+		);
+		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		return res.json({ message: "Order has been rejected successfully.", order });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: errorHandlers(error) });
