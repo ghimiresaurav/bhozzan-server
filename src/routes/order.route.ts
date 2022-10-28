@@ -8,6 +8,7 @@ import {
 	dispatchOrder,
 	deliverOrder,
 	cancelOrder,
+	serveOrder,
 } from "../controllers/order.controllers";
 import { isAuthenticated, isShipper } from "../middlewares/auth.middleware";
 
@@ -28,5 +29,6 @@ router.put("/accept/:orderId", acceptOrder);
 router.put("/reject/:orderId", rejectOrder);
 router.put("/dispatch/:orderId", dispatchOrder);
 router.put("/deliver/:orderId", deliverOrder);
+router.put("/serve/:orderId", serveOrder);
 
 export default router;

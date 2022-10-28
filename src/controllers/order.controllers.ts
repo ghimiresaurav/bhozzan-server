@@ -200,6 +200,34 @@ export const deliverOrder: RequestHandler = async (req, res) => {
 	}
 };
 
+export const serveOrder: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role === roleEnum.ADMIN)
+			return res.status(401).json({ messaage: "Invalid User Role" });
+
+		const { orderId }: { orderId?: string } = req.params;
+		if (!orderId || !isValidObjectId(orderId))
+			return res.status(400).json({ message: "Invalid Order id" });
+
+		const order = await Order.findOneAndUpdate(
+			{
+				_id: orderId,
+				// Make sure the order is to the same restaurant
+				restaurant: req.user.restaurant,
+				// Also make sure that the order is either Accepted or On The Way
+				status: orderStatusEnum.ACCEPTED,
+			},
+			{ $set: { status: orderStatusEnum.SERVED } }
+		);
+		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		return res.json({ message: "Order Served.", order });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};
+
 export const cancelOrder: RequestHandler = async (req, res) => {
 	try {
 		if (req.user.role !== roleEnum.CUSTOMER)
