@@ -5,6 +5,8 @@ import {
 	getOrders,
 	acceptOrder,
 	rejectOrder,
+	dispatchOrder,
+	completeDelivery,
 } from "../controllers/order.controllers";
 import { isAuthenticated, isShipper } from "../middlewares/auth.middleware";
 
@@ -22,5 +24,7 @@ router.use(isShipper);
 router.get("/restaurant", getRestaurantOrders);
 router.put("/accept/:orderId", acceptOrder);
 router.put("/reject/:orderId", rejectOrder);
+router.put("/dispatch/:orderId", dispatchOrder);
+router.put("/deliver/:orderId", completeDelivery);
 
 export default router;
