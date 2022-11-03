@@ -52,12 +52,22 @@ export const handleLogin: RequestHandler = async (req, res) => {
 				id: user._id,
 			},
 			<string>process.env.JWT_SECRET,
+			{ expiresIn: "7h" }
+		);
+
+		const refreshToken = jwt.sign(
+			{
+				phoneNumber: user.phoneNumber,
+				id: user._id,
+			},
+			<string>process.env.REFRESH_TOKEN_SECRET,
 			{ expiresIn: "7d" }
 		);
 
 		// Return a success message with the token and other useful information
 		return res.json({
 			token,
+			refreshToken,
 			id: user._id,
 			role: user.role,
 		});
@@ -67,28 +77,37 @@ export const handleLogin: RequestHandler = async (req, res) => {
 	}
 };
 
-// export const order: RequestHandler = async (req, res) => {
-// 	try {
-// 		const userId = req.user.id;
-// 		const order: IOrders | null = await Orders.findOne({ userId });
+export const refreshToken: RequestHandler = async (req, res) => {
+	try {
+		const refreshToken = req.header("Authorization")?.replace("Bearer ", "") as string;
+		const data: any = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as string);
+		const user = await User.findById(data.id);
 
-// 		// Create new entry if first time order
-// 		if (!order) {
-// 			const order: IOrders = new Orders({ userId, dishes: req.body });
-// 			await order.save();
-// 		}
+		if (!user) throw new Error();
 
-// 		// Else update existing entry
-// 		await Orders.findOneAndUpdate(userId, {
-// 			$push: { dishes: req.body },
-// 		});
+		const token = jwt.sign(
+			{
+				phoneNumber: user.phoneNumber,
+				id: user._id,
+			},
+			<string>process.env.JWT_SECRET,
+			{ expiresIn: "7h" }
+		);
 
-// 		return res.json({ message: "New Order Added Successfully" });
-// 	} catch (error) {
-// 		console.error(error);
-// 		return res.status(500).send(errorHandlers(error));
-// 	}
-// };
+		const newRefreshToken = jwt.sign(
+			{
+				phoneNumber: user.phoneNumber,
+				id: user._id,
+			},
+			<string>process.env.REFRESH_TOKEN_SECRET,
+			{ expiresIn: "7d" }
+		);
+
+		return res.json({ message: "Token Successfully Refreshed", token, newRefreshToken });
+	} catch (error) {
+		return res.status(401).json({ error: "Unauthorized!" });
+	}
+};
 
 export const favoriteRestaurant: RequestHandler = async (req, res) => {
 	try {
@@ -115,11 +134,11 @@ export const removeFromFavorite: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
 		const user = await User.findOne({ _id: userId, favorites: restaurantId });
-		if (!user) return res.json({ message: "The restaurant is already your favorite" });
+		if (!user) return res.json({ message: "The restaurant is not a favorite" });
 
-		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
+		await User.findByIdAndUpdate(userId, { $pull: { favorites: restaurantId } });
 
-		return res.json({ message: "Restaurant Favorited Sucessfully" });
+		return res.json({ message: "Restaurant Unfavorited Sucessfully" });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
