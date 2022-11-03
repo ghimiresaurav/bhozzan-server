@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { roleEnum } from "../enums/roleEnum";
 import { IBasket } from "../Interfaces/IBasket";
 import Basket from "../Models/Basket.model";
+import Dish from "../Models/Dish.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 
@@ -13,15 +14,14 @@ export const addToBasket: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const userId = req.user._id;
+		const dish = await Dish.findById(dishId);
 		const basket = await Basket.findOne({ userId });
 
 		if (!basket) {
-			const userBasket: IBasket = new Basket({
-				dishes: [dishId],
-				userId,
-			});
+			const userBasket: IBasket = new Basket({ dishes: [dishId], userId });
 			await userBasket.save();
-			return res.json({ message: "Dish added to new basket successfully" });
+
+			return res.json({ message: "Dish added to new basket successfully", dish });
 		}
 
 		const userBasket = await Basket.findOne({ userId, dishes: dishId });
@@ -29,7 +29,7 @@ export const addToBasket: RequestHandler = async (req, res) => {
 
 		await Basket.findByIdAndUpdate(basket, { $push: { dishes: dishId } });
 
-		return res.json({ message: "Dish added to basket successfully" });
+		return res.json({ message: "Dish added to basket successfully", dish });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
