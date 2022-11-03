@@ -20,6 +20,10 @@ const dishOrderSchema = new Schema<IDishOrder>({
 		type: Number,
 		required: true,
 	},
+	type: {
+		type: String,
+		enum: orderStatusEnum,
+	},
 });
 
 const orderSchema = new Schema<IOrder>(
