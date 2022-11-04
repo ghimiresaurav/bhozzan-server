@@ -31,3 +31,22 @@ export const createNewMessage: RequestHandler = async (req, res) => {
 		return res.status(500).json({ error: errorHandlers(error) });
 	}
 };
+
+export const getMessages: RequestHandler = async (req, res) => {
+	try {
+		const { chatId }: { chatId?: string } = req.params;
+		if (!chatId || !isValidObjectId(chatId))
+			return res.status(400).json({ message: "Invalid chat room id" });
+
+		const chat = await ChatRoom.findOne({ _id: chatId, users: req.user._id });
+		if (!chat) return res.status(404).json({ message: "Chat room not found" });
+
+		const messages = await Message.find({ room: chatId }).limit(10);
+		if (!messages) return res.status(404).json({ message: "Messages not found" });
+
+		return res.json({ message: "Message of requested room", messages });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: errorHandlers(error) });
+	}
+};

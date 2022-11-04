@@ -12,6 +12,8 @@ import tableRoute from "./routes/table.route";
 import reservationRoute from "./routes/reservation.route";
 import basketRoute from "./routes/basket.route";
 import orderRoute from "./routes/order.route";
+import chatRoute from "./routes/chat.route";
+
 import { socketServer } from "./socketServer";
 
 dotenv.config();
@@ -20,7 +22,9 @@ const app: Application = express();
 // init http server
 const httpServer: http.Server = http.createServer(app);
 // init socket server
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+	cors: { origin: "*" },
+});
 connectDB();
 
 app.use(express.json({ limit: "1mb" }));
@@ -33,10 +37,12 @@ app.use("/table", tableRoute);
 app.use("/reservation", reservationRoute);
 app.use("/basket", basketRoute);
 app.use("/order", orderRoute);
+app.use("/chat", chatRoute);
 
 const PORT: number = parseInt(<string>process.env.PORT) || 7000;
 
 io.on("connection", (socket) => {
 	socketServer(socket);
 });
+
 httpServer.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));

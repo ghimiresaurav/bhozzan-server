@@ -14,6 +14,7 @@ const messageSchema = new Schema<IMessage>(
 			type: String,
 			required: true,
 			trim: true,
+			maxlength: 1000,
 		},
 		room: {
 			type: ObjectId,

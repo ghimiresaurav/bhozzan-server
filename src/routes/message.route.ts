@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createNewMessage } from "../controllers/message.controllers";
+import { createNewMessage, getMessages } from "../controllers/message.controllers";
 import { isAuthenticated } from "../middlewares/auth.middleware";
 
 const router: Router = Router();
@@ -8,5 +8,6 @@ const router: Router = Router();
 router.use(isAuthenticated);
 
 router.post("/new", createNewMessage);
+router.get("/:chatId", getMessages);
 
 export default router;
