@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
+import mongoose from "mongoose";
 import { roleEnum } from "../enums/roleEnum";
 import { IBasket } from "../Interfaces/IBasket";
+import Baskets from "../Models/Basket.model";
 import Basket from "../Models/Basket.model";
 import Dish from "../Models/Dish.model";
 import errorHandlers from "../utils/error-handlers";
@@ -59,6 +61,51 @@ export const getBasketDishes: RequestHandler = async (req, res) => {
 		const basket = await Basket.findOne({ userId }).populate("dishes");
 
 		return res.json({ message: "Basket dishes of user", basket });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+export const getBasketRestaurant: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
+
+		const userId = req.user._id;
+
+		const basket = await Baskets.aggregate([
+			{
+				$match: {
+					userId: {
+						$eq: new mongoose.Types.ObjectId(userId),
+					},
+				},
+			},
+			{
+				$lookup: {
+					from: "dishes",
+					localField: "dishes",
+					foreignField: "_id",
+					as: "dish",
+				},
+			},
+			{
+				$lookup: {
+					from: "restaurants",
+					localField: "dish.restaurant",
+					foreignField: "_id",
+					as: "restaurant",
+				},
+			},
+			{
+				$project: {
+					"restaurant._id": 1,
+					"restaurant.name": 1,
+					"restaurant.address": 1,
+				},
+			},
+		]);
+
+		return res.json({ message: "Basket dishes of user", basket: basket[0] });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

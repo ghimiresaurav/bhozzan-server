@@ -1,8 +1,5 @@
 import { RequestHandler } from "express";
-import { ObjectId } from "mongoose";
-import { IReservation, IReservationDTO } from "../Interfaces/IReservation";
-import { ITable, ITableDTO } from "../Interfaces/ITable";
-import Reservation from "../Models/Reservation.model";
+import { ITable } from "../Interfaces/ITable";
 import Restaurant from "../Models/Restaurant.model";
 import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
