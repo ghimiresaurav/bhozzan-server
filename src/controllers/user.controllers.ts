@@ -1,14 +1,10 @@
 import { RequestHandler } from "express";
 import User from "../Models/User.model";
 import { IUser, IUserDTO, IUserRegistrationDTO } from "../Interfaces/IUser";
-// import Orders from "../Models/Order.model";
-// // import { IOrder } from "../Interfaces/IOrder";
 import Restaurant from "../Models/Restaurant.model";
 import jwt from "jsonwebtoken";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
-import { ObjectId } from "mongoose";
-import { IRestaurant } from "../Interfaces/IRestaurant";
 
 export const registerUser: RequestHandler = async (req, res) => {
 	try {
@@ -116,7 +112,7 @@ export const favoriteRestaurant: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
 		const user = await User.findOne({ _id: userId, favorites: restaurantId });
-		if (user) return res.json({ message: "The restaurant is already your favorite" });
+		if (user) return res.status(403).json({ message: "The restaurant is already your favorite" });
 
 		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
 
@@ -134,7 +130,7 @@ export const removeFromFavorite: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
 		const user = await User.findOne({ _id: userId, favorites: restaurantId });
-		if (!user) return res.json({ message: "The restaurant is not a favorite" });
+		if (!user) return res.status(403).json({ message: "The restaurant is not a favorite" });
 
 		await User.findByIdAndUpdate(userId, { $pull: { favorites: restaurantId } });
 
@@ -149,8 +145,9 @@ export const myFavorites: RequestHandler = async (req, res) => {
 	try {
 		const userId = req.user._id;
 		const favoritedIds = await User.findById(userId, { favorites: 1 });
+		if (!favoritedIds) return res.status(400).json({ message: "Favorites not found" });
 
-		if (!favoritedIds) return res.json({ message: "No favorite restaurant" });
+		if (!favoritedIds.favorites.length) return res.json({ message: "No favorite restaurants" });
 
 		const favoriteRestaurants = await Restaurant.find(
 			{ _id: { $in: favoritedIds.favorites } },

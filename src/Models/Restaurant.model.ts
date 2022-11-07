@@ -3,6 +3,7 @@ import { roleEnum } from "../enums/roleEnum";
 import { IRestaurant } from "../Interfaces/IRestaurant";
 import { IUser, IUserRegistrationDTO } from "../Interfaces/IUser";
 import getAbbreviatedName from "../utils/get-abbreviated-name";
+import Review from "./Review.model";
 import User from "./User.model";
 const { ObjectId } = Schema.Types;
 
@@ -47,6 +48,11 @@ const restaurantSchema = new Schema<IRestaurant>({
 	},
 	phoneNumbers: {
 		type: [Number],
+	},
+	reviews: {
+		type: [Review.schema],
+		default: [],
+		ref: "Review",
 	},
 	imageLink: {
 		type: [String],

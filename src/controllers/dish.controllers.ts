@@ -1,10 +1,10 @@
 import { RequestHandler } from "express";
+import mongoose from "mongoose";
 import { IDish, IDishDTO } from "../Interfaces/IDish";
 import Dish from "../Models/Dish.model";
 import Restaurant from "../Models/Restaurant.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
-import mongoose from "mongoose";
 
 export const addNewDish: RequestHandler = async (req, res) => {
 	try {

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { IReview } from "./IReview";
 
 export interface IRestaurantDTO {
 	name: string;
@@ -13,6 +14,7 @@ export interface IRestaurant extends IRestaurantDTO, mongoose.Document {
 	rating: number;
 	tables: Array<mongoose.Schema.Types.ObjectId | string>;
 	isVerified: boolean;
+	reviews: Array<IReview>;
 	noOfShippers: number;
 	shippers: {
 		count: number;
