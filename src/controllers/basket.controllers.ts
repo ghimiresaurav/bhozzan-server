@@ -27,7 +27,7 @@ export const addToBasket: RequestHandler = async (req, res) => {
 		}
 
 		const userBasket = await Basket.findOne({ userId, dishes: dishId });
-		if (userBasket) return res.json({ message: "This dish is already in basket" });
+		if (userBasket) return res.status(403).json({ message: "This dish is already in basket" });
 
 		await Basket.findByIdAndUpdate(basket, { $push: { dishes: dishId } });
 
