@@ -53,19 +53,6 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 	}
 };
 
-export const getBasketDishes: RequestHandler = async (req, res) => {
-	try {
-		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
-
-		const userId = req.user._id;
-		const basket = await Basket.findOne({ userId }).populate("dishes");
-
-		return res.json({ message: "Basket dishes of user", basket });
-	} catch (error) {
-		console.error(error);
-		return res.status(500).send(errorHandlers(error));
-	}
-};
 export const getBasketRestaurant: RequestHandler = async (req, res) => {
 	try {
 		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
@@ -75,9 +62,7 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 		const basket = await Baskets.aggregate([
 			{
 				$match: {
-					userId: {
-						$eq: new mongoose.Types.ObjectId(userId),
-					},
+					userId: { $eq: new mongoose.Types.ObjectId(userId) },
 				},
 			},
 			{
@@ -106,6 +91,52 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 		]);
 
 		return res.json({ message: "Basket dishes of user", basket: basket[0] });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const getBasketDishes: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
+
+		const userId = req.user._id;
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!restaurantId || !isValidObjectId(restaurantId))
+			return res.status(400).send("Invalid Restaurant ID");
+
+		const dish = await Baskets.aggregate([
+			{
+				$match: {
+					userId: new mongoose.Types.ObjectId(userId),
+				},
+			},
+			{
+				$lookup: {
+					from: "dishes",
+					localField: "dishes",
+					foreignField: "_id",
+					as: "dish",
+				},
+			},
+			{
+				$unwind: "$dish",
+			},
+			{
+				$match: {
+					"dish.restaurant": new mongoose.Types.ObjectId(restaurantId),
+				},
+			},
+			{
+				$project: {
+					"restaurant._id": 1,
+					dish: 1,
+				},
+			},
+		]);
+
+		return res.json({ message: "Basket dishes of specified restaurant of user", dish });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
