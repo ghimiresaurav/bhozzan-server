@@ -58,6 +58,12 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
 
 		const userId = req.user._id;
+		const basketExist = await Baskets.findOne({ userId });
+		if (!basketExist)
+			return res.json({
+				message: "Basket dishes of specified restaurant of user",
+				basket: { restaurantId: [] },
+			});
 
 		const basket = await Baskets.aggregate([
 			{
