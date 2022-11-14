@@ -112,7 +112,7 @@ export const favoriteRestaurant: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
 		const user = await User.findOne({ _id: userId, favorites: restaurantId });
-		if (user) return res.status(403).json({ message: "The restaurant is already your favorite" });
+		if (user) return res.status(403).json({ error: "The restaurant is already your favorite" });
 
 		await User.findByIdAndUpdate(userId, { $push: { favorites: restaurantId } });
 
@@ -130,7 +130,7 @@ export const removeFromFavorite: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID");
 
 		const user = await User.findOne({ _id: userId, favorites: restaurantId });
-		if (!user) return res.status(403).json({ message: "The restaurant is not a favorite" });
+		if (!user) return res.status(403).json({ error: "The restaurant is not a favorite" });
 
 		await User.findByIdAndUpdate(userId, { $pull: { favorites: restaurantId } });
 
