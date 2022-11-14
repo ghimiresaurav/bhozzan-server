@@ -41,6 +41,7 @@ app.use("/chat", chatRoute);
 
 const PORT: number = parseInt(<string>process.env.PORT) || 7000;
 
+// Use socket server when user connects by socket
 io.on("connection", (socket) => {
 	socketServer(socket);
 });
