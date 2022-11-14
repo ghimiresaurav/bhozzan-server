@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
 	addNewDish,
 	deleteDishById,
+	getTodays,
 	updateDish,
 	viewAllDishes,
 	viewDishById,
@@ -13,6 +14,7 @@ import { isAuthenticated, isManager } from "../middlewares/auth.middleware";
 const router: Router = Router();
 
 router.get("/", viewAllDishes);
+router.get("/best-selling", getTodays);
 router.get("/:dishId", viewDishById);
 router.get("/restaurant/:restaurantId", viewDishesByRestaurant);
 router.get("/category/:category", viewDishesByCategory);

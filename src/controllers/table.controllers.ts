@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { roleEnum } from "../enums/roleEnum";
 import { ITable } from "../Interfaces/ITable";
 import Restaurant from "../Models/Restaurant.model";
 import Table from "../Models/Table.model";
@@ -41,6 +42,21 @@ export const deleteTable: RequestHandler = async (req, res) => {
 		});
 
 		return res.json({ message: "Table Deleted Successfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const getTablesByRestaurant: RequestHandler = async (req, res) => {
+	try {
+		const { restaurantId }: { restaurantId?: string } = req.params;
+		if (!isValidObjectId(restaurantId)) return res.status(400).send("Invalid Restaurant ID.");
+
+		const tables = await Table.find({ restaurantId });
+		if (!tables.length) return res.status(404).json({ message: "Reservations not found" });
+
+		return res.json({ message: "Reservations of specifed restaurant", tables });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

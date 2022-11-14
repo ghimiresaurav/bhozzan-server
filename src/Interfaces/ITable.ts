@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export interface ITableDTO {
 	seats: number;
-	position: string;
+	name: string;
 	rate: number;
 }
 export interface ITable extends ITableDTO, mongoose.Document {

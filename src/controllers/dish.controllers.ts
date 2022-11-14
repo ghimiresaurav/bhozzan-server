@@ -1,7 +1,9 @@
 import { RequestHandler } from "express";
 import mongoose from "mongoose";
+import { orderStatusEnum } from "../enums/orderStatusEnum";
 import { IDish, IDishDTO } from "../Interfaces/IDish";
 import Dish from "../Models/Dish.model";
+import Order from "../Models/Order.model";
 import Restaurant from "../Models/Restaurant.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
@@ -146,6 +148,46 @@ export const viewDishesByCategory: RequestHandler = async (req, res) => {
 		if (!dishes) return res.status(404).send("No Dishes in this Categories");
 
 		return res.json({ message: "Dishes of specified category", dishes });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const getTodays: RequestHandler = async (req, res) => {
+	try {
+		const todays = await Order.aggregate([
+			{
+				$match: {
+					$and: [
+						{ status: { $ne: orderStatusEnum.CANCELED } },
+						{ createdAt: { $lt: new Date(new Date().setHours(0, 0, 0)) } },
+						{ createdAt: { $gte: new Date(new Date().setHours(0, 0, 0) - 24 * 60 * 60 * 1000) } },
+					],
+				},
+			},
+			{ $unwind: "$dishes" },
+			{
+				$group: {
+					_id: "$dishes.dishId",
+					total: {
+						$sum: "$dishes.quantity",
+					},
+				},
+			},
+			{ $sort: { quantity: 1 } },
+			{
+				$lookup: {
+					from: "dishes",
+					localField: "_id",
+					foreignField: "_id",
+					as: "dish",
+				},
+			},
+			{ $limit: 5 },
+		]);
+
+		return res.json({ message: "Today's Best Selling Dishes", todays });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));

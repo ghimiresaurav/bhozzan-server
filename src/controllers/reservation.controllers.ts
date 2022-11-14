@@ -6,12 +6,12 @@ import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 
-export const getReservationsByTable: RequestHandler = async (req, res) => {
+export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId });
+		const reservations = await Reservation.find({ tableId }).sort({ reservedSince: -1 });
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
 		return res.json({ message: "Reservations of specifed table", reservations });
@@ -98,18 +98,6 @@ export const createReservation: RequestHandler = async (req, res) => {
 	}
 };
 
-// export const getTableReservations: RequestHandler = async(req, res) => {
-// try{
-// 	const reservations = await Reservation.find({})
-
-// }catch (error) {
-// 	console.error(error);
-// 	return res.status(500).send(errorHandlers(error));
-// }
-// }
-
-// export const getReservationById: Reque
-
 export const cancleReservation: RequestHandler = async (req, res) => {
 	try {
 		const { reservationId }: { reservationId?: string } = req.params;
@@ -120,7 +108,7 @@ export const cancleReservation: RequestHandler = async (req, res) => {
 		if (!reservation) return res.status(404).json({ message: "Reservations not found" });
 
 		if (reservation.reservedSince.getTime() - new Date().getTime() <= 3600000)
-			return res.json({ message: "Unable to cancle reservation" });
+			return res.status(403).json({ message: "Unable to cancle reservation" });
 
 		await Table.findByIdAndUpdate(reservation.tableId, { $pull: { reservations: reservationId } });
 		await Reservation.findByIdAndRemove(reservationId);
@@ -132,18 +120,15 @@ export const cancleReservation: RequestHandler = async (req, res) => {
 	}
 };
 
-export const getReservationsByRestaurant: RequestHandler = async (req, res) => {
+export const getReservationsByTable: RequestHandler = async (req, res) => {
 	try {
-		const { restaurantId }: { restaurantId?: string } = req.params;
+		const { tableId }: { tableId?: string } = req.params;
+		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		if (!isValidObjectId(restaurantId))
-			return res.status(400).json({ message: "Invalid Table id" });
+		const reservations = await Reservation.find({ tableId, reservedSince: { $gte: new Date() } });
+		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		const reservations = await Reservation.find({ restaurantId });
-		console.log(reservations);
-		if (!reservations.length) return res.status(404).json({ message: "Reservations not found" });
-
-		return res.json({ message: "Reservations of specifed restaurant", reservations });
+		return res.json({ message: "Reservations of specifed table", reservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
