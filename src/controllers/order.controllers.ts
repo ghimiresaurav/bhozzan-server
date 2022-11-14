@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { ObjectId } from "mongoose";
 import { orderStatusEnum } from "../enums/orderStatusEnum";
 import { roleEnum } from "../enums/roleEnum";
 import { IDish } from "../Interfaces/IDish";
@@ -72,7 +73,22 @@ export const placeOrder: RequestHandler = async (req, res) => {
 // This is for shippers and restaurant managers
 export const getRestaurantOrders: RequestHandler = async (req, res) => {
 	try {
-		const orders = await Order.find({ restaurant: req.user.restaurant });
+		// Get the status which is sent in query
+		const { status }: { status?: string } = req.query;
+
+		// If status is non-empty but is not among orderStatusEnu,
+		if (status && !Object.values(orderStatusEnum).includes(<orderStatusEnum>status))
+			return res.status(400).json({ message: "Invalid order status" });
+
+		// Create a query object
+		let query: { restaurant: ObjectId | undefined; status?: string } = {
+			restaurant: req.user.restaurant,
+		};
+		// If status is non-empty, include the status in query
+		if (status) query.status = status;
+
+		// Find the orders by the query
+		const orders = await Order.find(query);
 		if (!orders) return res.status(404).json({ message: "Orders not found" });
 
 		return res.json({ message: "Orders to your restaurant", orders });
