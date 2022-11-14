@@ -17,15 +17,17 @@ const tableSchema = new Schema<ITable>({
 	},
 	reservations: {
 		type: [ObjectId],
+		default: [],
+		ref: "Reservation",
 	},
 	isReserved: {
 		type: Boolean,
 		default: false,
 	},
-	// position: {
-	// 	type: String,
-	// 	required: true,
-	// },
+	name: {
+		type: String,
+		required: true,
+	},
 });
 
 const Table = model<ITable>("Table", tableSchema);
