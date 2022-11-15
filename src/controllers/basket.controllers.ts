@@ -27,7 +27,8 @@ export const addToBasket: RequestHandler = async (req, res) => {
 		}
 
 		const userBasket = await Basket.findOne({ userId, dishes: dishId });
-		if (userBasket) return res.status(403).json({ error: "This dish is already in basket" });
+		if (userBasket)
+			return res.status(403).json({ userBasket, error: "This dish is already in basket" });
 
 		await Basket.findByIdAndUpdate(basket, { $push: { dishes: dishId } });
 
@@ -44,9 +45,9 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const userId = req.user._id;
-		await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
+		const basket = await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
 
-		return res.json({ message: "Dish removed from basket successfully" });
+		return res.json({ message: "Dish removed from basket successfully", basket });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
