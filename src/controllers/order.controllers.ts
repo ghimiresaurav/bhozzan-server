@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import { orderStatusEnum } from "../enums/orderStatusEnum";
 import { roleEnum } from "../enums/roleEnum";
 import { IDish } from "../Interfaces/IDish";
@@ -88,7 +88,20 @@ export const getRestaurantOrders: RequestHandler = async (req, res) => {
 		if (status) query.status = status;
 
 		// Find the orders by the query
-		const orders = await Order.find(query);
+		const orders = await Order.aggregate([
+			{
+				$match: { $and: [{ restaurant: query.restaurant }, { status: query.status }] },
+			},
+			{
+				$lookup: {
+					from: "dishes",
+					localField: "dishes.dishId",
+					foreignField: "_id",
+					as: "dishes",
+				},
+			},
+		]);
+
 		if (!orders) return res.status(404).json({ message: "Orders not found" });
 
 		return res.json({ message: "Orders to your restaurant", orders });
@@ -104,7 +117,36 @@ export const getOrders: RequestHandler = async (req, res) => {
 		if (req.user.role !== roleEnum.CUSTOMER)
 			return res.status(400).json({ message: "Invalid user role" });
 
-		const orders = await Order.find({ userId: req.user._id });
+		const orders = await Order.aggregate([
+			{
+				$match: { userId: req.user._id },
+			},
+			{
+				$lookup: {
+					from: "dishes",
+					localField: "dishes.dishId",
+					foreignField: "_id",
+					as: "dishes",
+				},
+			},
+			{
+				$lookup: {
+					from: "restaurants",
+					localField: "restaurant",
+					foreignField: "_id",
+					as: "restaurant",
+				},
+			},
+			{ $sort: { updatedAt: -1 } },
+			{
+				$project: {
+					"restaurant.tables": 0,
+					"restaurant.dishes": 0,
+					"restaurant.reviews": 0,
+					"restaurant.shippers": 0,
+				},
+			},
+		]);
 		if (!orders) return res.status(404).json({ message: "Orders not found" });
 
 		return res.json({ message: "Your Orders", orders });
