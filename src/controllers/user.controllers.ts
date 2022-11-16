@@ -23,7 +23,7 @@ export const registerUser: RequestHandler = async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
-		return res.status(500).send(errorHandlers(error));
+		return res.status(500).json({ error: errorHandlers(error).errorMsg });
 	}
 };
 
