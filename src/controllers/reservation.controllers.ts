@@ -5,17 +5,17 @@ import Restaurant from "../Models/Restaurant.model";
 import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
+import mongoose from "mongoose";
 
 // Returns all the reservations that have ever been created
+// For restaurant managers
 export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId });
-
-		const xxreservations = await Reservation.aggregate([
-			// { $match: { tableId: tableId } },
+		const reservations = await Reservation.aggregate([
+			{ $match: { tableId: new mongoose.Types.ObjectId(tableId) } },
 			{
 				$lookup: {
 					from: "tables",
@@ -24,17 +24,20 @@ export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 					as: "table",
 				},
 			},
+			{ $unwind: "$table" },
 			{
 				$project: {
+					tableId: 0,
 					"table.reservations": 0,
 					"table.__v": 0,
 				},
 			},
+			{ $sort: { reservedSince: -1 } },
 		]);
 
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		return res.json({ message: "Reservations of specifed table", xxreservations });
+		return res.json({ message: "Reservations of specifed table", tableId, reservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -141,18 +144,19 @@ export const cancleReservation: RequestHandler = async (req, res) => {
 };
 
 // Returns only the reservations whose starting time is greater than or equal to current time
+// For customers
 export const getReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		// const reservations = await Reservation.find({
-		// 	tableId,
-		// 	reservedSince: { $gte: new Date() },
-		// }).populate("tableId");
-
 		const reservations = await Reservation.aggregate([
-			{ $match: { reservedSince: { $gte: new Date() }, tableId } },
+			{
+				$match: {
+					tableId: new mongoose.Types.ObjectId(tableId),
+					reservedSince: { $gte: new Date() },
+				},
+			},
 			{
 				$lookup: {
 					from: "tables",
@@ -161,11 +165,19 @@ export const getReservationsByTable: RequestHandler = async (req, res) => {
 					as: "table",
 				},
 			},
-			{ $project: { tableId: 0 } },
+			{ $unwind: "$table" },
+			{
+				$project: {
+					tableId: 0,
+					"table.reservations": 0,
+					"table.__v": 0,
+				},
+			},
+			{ $sort: { reservedSince: -1 } },
 		]);
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		return res.json({ message: "Reservations of specifed table", reservations });
+		return res.json({ message: "Reservations of specifed table", tableId, reservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
