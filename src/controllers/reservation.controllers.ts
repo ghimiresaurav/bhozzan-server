@@ -6,6 +6,7 @@ import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 import mongoose from "mongoose";
+import { roleEnum } from "../enums/roleEnum";
 
 // Returns all the reservations that have ever been created
 // For restaurant managers
@@ -26,10 +27,20 @@ export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 			},
 			{ $unwind: "$table" },
 			{
+				$lookup: {
+					from: "users",
+					localField: "reservedBy",
+					foreignField: "_id",
+					as: "customer",
+				},
+			},
+			{ $unwind: "$customer" },
+			{
 				$project: {
 					tableId: 0,
 					"table.reservations": 0,
 					"table.__v": 0,
+					"customer.password": 0,
 				},
 			},
 			{ $sort: { reservedSince: -1 } },
@@ -46,6 +57,9 @@ export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 
 export const createReservation: RequestHandler = async (req, res) => {
 	try {
+		// Only customers can create reservations
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid user role");
+
 		const tableId: string = req.body.tableId;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid table id" });
 
