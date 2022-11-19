@@ -45,9 +45,13 @@ export const removeFromBasket: RequestHandler = async (req, res) => {
 		if (!isValidObjectId(dishId)) return res.status(400).send("Invalid Dish ID");
 
 		const userId = req.user._id;
-		const basket = await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
 
-		return res.json({ message: "Dish removed from basket successfully", basket });
+		const dishExist = await Basket.findOne({ userId, dishes: dishId });
+		if (!dishExist) return res.status(404).json({ error: "This dish is not in basket" });
+
+		await Basket.findOneAndUpdate({ userId, $pull: { dishes: dishId } });
+
+		return res.json({ message: "Dish removed from basket successfully", dishId });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
