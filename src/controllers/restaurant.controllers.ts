@@ -76,11 +76,12 @@ export const addShipper: RequestHandler = async (req, res) => {
 				.status(405)
 				.send("Not Allowed. Your restaurant has reached it's limit on number of shippers.");
 
+		const shipperPassword = "shipper@123";
 		// Extract User Inputs
 		const shipperData: IUserRegistrationDTO = {
 			...req.body,
 			role: roleEnum.SHIPPER,
-			password: `shipper@123`,
+			password: shipperPassword,
 			restaurant: restaurantId,
 		};
 
@@ -92,7 +93,11 @@ export const addShipper: RequestHandler = async (req, res) => {
 			$inc: { "shippers.count": 1 },
 		});
 
-		return res.json({ message: "New Shipper added successfully" });
+		return res.json({
+			message: "New Shipper added successfully",
+			shipperPhone: req.body.phoneNumber,
+			shipperPassword,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -164,6 +169,26 @@ export const updateRestaurant: RequestHandler = async (req, res) => {
 		if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
 
 		return res.json({ message: "Restaurant updated successfully" });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};
+
+export const viewShippers: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.MANAGER) return res.status(400).send("Invalid user role");
+
+		const shippers = await User.find({ restaurant: req.user.restaurant, role: roleEnum.SHIPPER });
+		if (!shippers) return res.status(404).send("Shippers not found");
+
+		const restaurant = await Restaurant.findById(req.user.restaurant);
+
+		return res.json({
+			message: "Registered shippers of your restaurant",
+			shippers,
+			limit: restaurant!.shippers.limit,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
