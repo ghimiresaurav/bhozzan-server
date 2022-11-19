@@ -6,15 +6,35 @@ import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 
+// Returns all the reservations that have ever been created
 export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId }).sort({ reservedSince: -1 });
+		const reservations = await Reservation.find({ tableId });
+
+		const xxreservations = await Reservation.aggregate([
+			// { $match: { tableId: tableId } },
+			{
+				$lookup: {
+					from: "tables",
+					localField: "tableId",
+					foreignField: "_id",
+					as: "table",
+				},
+			},
+			{
+				$project: {
+					"table.reservations": 0,
+					"table.__v": 0,
+				},
+			},
+		]);
+
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		return res.json({ message: "Reservations of specifed table", reservations });
+		return res.json({ message: "Reservations of specifed table", xxreservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -120,12 +140,29 @@ export const cancleReservation: RequestHandler = async (req, res) => {
 	}
 };
 
+// Returns only the reservations whose starting time is greater than or equal to current time
 export const getReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId, reservedSince: { $gte: new Date() } });
+		// const reservations = await Reservation.find({
+		// 	tableId,
+		// 	reservedSince: { $gte: new Date() },
+		// }).populate("tableId");
+
+		const reservations = await Reservation.aggregate([
+			{ $match: { reservedSince: { $gte: new Date() }, tableId } },
+			{
+				$lookup: {
+					from: "tables",
+					localField: "tableId",
+					foreignField: "_id",
+					as: "table",
+				},
+			},
+			{ $project: { tableId: 0 } },
+		]);
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
 		return res.json({ message: "Reservations of specifed table", reservations });
