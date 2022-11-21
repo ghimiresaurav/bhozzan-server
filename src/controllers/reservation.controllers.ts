@@ -71,6 +71,13 @@ export const createReservation: RequestHandler = async (req, res) => {
 
 		const reservationData: IReservationDTO = req.body;
 
+		// Explicitly type cast the incoming dates into Date format
+		reservationData.reservedSince =
+			reservationData && reservationData.reservedSince && new Date(reservationData.reservedSince);
+
+		reservationData.reservedUntil =
+			reservationData && reservationData.reservedUntil && new Date(reservationData.reservedUntil);
+
 		const previousReservations = await Reservation.find({
 			tableId,
 			// Make sure to include colliding reservations
@@ -128,7 +135,11 @@ export const createReservation: RequestHandler = async (req, res) => {
 		table.reservations.push(reservation._id);
 		await table.save();
 
-		return res.json({ message: "Table Reserved Successfully" });
+		return res.json({
+			message: "Table Reserved Successfully",
+			reservations: table.reservations,
+			reservation,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
