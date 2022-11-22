@@ -137,6 +137,7 @@ export const getOrders: RequestHandler = async (req, res) => {
 					as: "restaurant",
 				},
 			},
+			{ $unwind: "$restaurant" },
 			{ $sort: { updatedAt: -1 } },
 			{
 				$project: {
