@@ -7,6 +7,7 @@ const dishOrderSchema = new Schema<IDishOrder>({
 	dishId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
+		ref: "Dish",
 	},
 	rate: {
 		type: Number,
@@ -31,6 +32,7 @@ const orderSchema = new Schema<IOrder>(
 		userId: {
 			type: ObjectId,
 			required: true,
+			ref: "User",
 		},
 		dishes: {
 			type: [dishOrderSchema],
@@ -48,6 +50,7 @@ const orderSchema = new Schema<IOrder>(
 		restaurant: {
 			type: ObjectId,
 			required: true,
+			ref: "Restaurant",
 		},
 	},
 	{

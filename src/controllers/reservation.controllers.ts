@@ -5,16 +5,50 @@ import Restaurant from "../Models/Restaurant.model";
 import Table from "../Models/Table.model";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
+import mongoose from "mongoose";
+import { roleEnum } from "../enums/roleEnum";
 
+// Returns all the reservations that have ever been created
+// For restaurant managers
 export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId }).sort({ reservedSince: -1 });
+		const reservations = await Reservation.aggregate([
+			{ $match: { tableId: new mongoose.Types.ObjectId(tableId) } },
+			{
+				$lookup: {
+					from: "tables",
+					localField: "tableId",
+					foreignField: "_id",
+					as: "table",
+				},
+			},
+			{ $unwind: "$table" },
+			{
+				$lookup: {
+					from: "users",
+					localField: "reservedBy",
+					foreignField: "_id",
+					as: "customer",
+				},
+			},
+			{ $unwind: "$customer" },
+			{
+				$project: {
+					tableId: 0,
+					"table.reservations": 0,
+					"table.__v": 0,
+					"customer.password": 0,
+				},
+			},
+			{ $sort: { reservedSince: -1 } },
+		]);
+
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		return res.json({ message: "Reservations of specifed table", reservations });
+		return res.json({ message: "Reservations of specifed table", tableId, reservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -23,6 +57,9 @@ export const getAllReservationsByTable: RequestHandler = async (req, res) => {
 
 export const createReservation: RequestHandler = async (req, res) => {
 	try {
+		// Only customers can create reservations
+		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid user role");
+
 		const tableId: string = req.body.tableId;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid table id" });
 
@@ -33,6 +70,13 @@ export const createReservation: RequestHandler = async (req, res) => {
 		if (!restaurantId) return res.status(404).send("Restaurant not found");
 
 		const reservationData: IReservationDTO = req.body;
+
+		// Explicitly type cast the incoming dates into Date format
+		reservationData.reservedSince =
+			reservationData && reservationData.reservedSince && new Date(reservationData.reservedSince);
+
+		reservationData.reservedUntil =
+			reservationData && reservationData.reservedUntil && new Date(reservationData.reservedUntil);
 
 		const previousReservations = await Reservation.find({
 			tableId,
@@ -91,7 +135,11 @@ export const createReservation: RequestHandler = async (req, res) => {
 		table.reservations.push(reservation._id);
 		await table.save();
 
-		return res.json({ message: "Table Reserved Successfully" });
+		return res.json({
+			message: "Table Reserved Successfully",
+			reservations: table.reservations,
+			reservation,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
@@ -120,15 +168,41 @@ export const cancleReservation: RequestHandler = async (req, res) => {
 	}
 };
 
+// Returns only the reservations whose starting time is greater than or equal to current time
+// For customers
 export const getReservationsByTable: RequestHandler = async (req, res) => {
 	try {
 		const { tableId }: { tableId?: string } = req.params;
 		if (!isValidObjectId(tableId)) return res.status(400).json({ message: "Invalid Table id" });
 
-		const reservations = await Reservation.find({ tableId, reservedSince: { $gte: new Date() } });
+		const reservations = await Reservation.aggregate([
+			{
+				$match: {
+					tableId: new mongoose.Types.ObjectId(tableId),
+					reservedSince: { $gte: new Date() },
+				},
+			},
+			{
+				$lookup: {
+					from: "tables",
+					localField: "tableId",
+					foreignField: "_id",
+					as: "table",
+				},
+			},
+			{ $unwind: "$table" },
+			{
+				$project: {
+					tableId: 0,
+					"table.reservations": 0,
+					"table.__v": 0,
+				},
+			},
+			{ $sort: { reservedSince: -1 } },
+		]);
 		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
 
-		return res.json({ message: "Reservations of specifed table", reservations });
+		return res.json({ message: "Reservations of specifed table", tableId, reservations });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
