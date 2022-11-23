@@ -5,6 +5,7 @@ import Restaurant from "../Models/Restaurant.model";
 import jwt from "jsonwebtoken";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
+import { roleEnum } from "../enums/roleEnum";
 
 export const registerUser: RequestHandler = async (req, res) => {
 	try {
@@ -40,6 +41,14 @@ export const handleLogin: RequestHandler = async (req, res) => {
 			return res.status(401).json({
 				error: "Invalid login credentials",
 			});
+
+		if (user.role === roleEnum.MANAGER || user.role === roleEnum.SHIPPER) {
+			const restaurant = await Restaurant.findById(user.restaurant);
+			if (!restaurant?.isVerified)
+				return res.status(400).json({
+					message: "Unverified restaurant.",
+				});
+		}
 
 		// If everything is okay, sign a token with the user's information
 		const token = jwt.sign(
