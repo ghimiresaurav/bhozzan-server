@@ -5,6 +5,7 @@ import { roleEnum } from "../enums/roleEnum";
 import { IDish } from "../Interfaces/IDish";
 import Dish from "../Models/Dish.model";
 import Order from "../Models/Order.model";
+import { sendNotification } from "../socketServer";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 
@@ -136,6 +137,9 @@ export const acceptOrder: RequestHandler = async (req, res) => {
 			{ $set: { status: orderStatusEnum.ACCEPTED } }
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify user that their order has been accepted by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been accepted`, order });
 
 		return res.json({ message: "Order has been accepted successfully.", order });
 	} catch (error) {
