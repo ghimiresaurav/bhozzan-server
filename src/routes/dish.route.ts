@@ -10,6 +10,7 @@ import {
 	viewDishesByRestaurant,
 } from "../controllers/dish.controllers";
 import { isAuthenticated, isManager } from "../middlewares/auth.middleware";
+import { isVerified } from "../middlewares/isVerified.middleware";
 
 const router: Router = Router();
 
@@ -19,7 +20,11 @@ router.get("/:dishId", viewDishById);
 router.get("/restaurant/:restaurantId", viewDishesByRestaurant);
 router.get("/category/:category", viewDishesByCategory);
 
-router.use(isAuthenticated, isManager);
+//--------------------------------------AUTHENTICATED USER ROUTE-------------------------------//
+router.use(isAuthenticated);
+
+//--------------------------------------MANAGER ROUTE------------------------------------------//
+router.use(isManager, isVerified);
 
 // The following can be only accessed by restaurant managers
 router.post("/add", addNewDish);

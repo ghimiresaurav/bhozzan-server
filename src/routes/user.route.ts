@@ -12,14 +12,19 @@ import { favoriteRestaurant } from "../controllers/user.controllers";
 
 const router: Router = Router();
 
+//-------------------------------UNAUTHENTICATED ROUTE---------------------------------------//
 router.post("/register", registerUser);
 router.post("/login", handleLogin);
 router.post("/refresh", refreshToken);
 // // router.post("/order", isAuthenticated, order);
-router.post("/favorite/:restaurantId", isAuthenticated, favoriteRestaurant);
-router.delete("/favorite/:restaurantId", isAuthenticated, removeFromFavorite);
-router.get("/favorite", isAuthenticated, myFavorites);
 
-router.get("/my-details", isAuthenticated, getMyDetails);
+//-------------------------------AUTHENTICATED USER ROUTE-------------------------------------//
+router.use(isAuthenticated);
+
+router.post("/favorite/:restaurantId", favoriteRestaurant);
+router.delete("/favorite/:restaurantId", removeFromFavorite);
+router.get("/favorite", myFavorites);
+
+router.get("/my-details", getMyDetails);
 
 export default router;
