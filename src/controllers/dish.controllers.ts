@@ -184,6 +184,23 @@ export const getTodays: RequestHandler = async (req, res) => {
 					as: "dish",
 				},
 			},
+			{
+				$lookup: {
+					from: "restaurants",
+					localField: "dish.restaurant",
+					foreignField: "_id",
+					as: "restaurant",
+				},
+			},
+			{
+				$project: {
+					_id: 0,
+					"restaurant.tables": 0,
+					"restaurant.dishes": 0,
+					"restaurant.reviews": 0,
+					"restaurant.shippers": 0,
+				},
+			},
 			{ $limit: 5 },
 		]);
 

@@ -134,7 +134,7 @@ export const removeFromFavorite: RequestHandler = async (req, res) => {
 
 		await User.findByIdAndUpdate(userId, { $pull: { favorites: restaurantId } });
 
-		return res.json({ message: "Restaurant Unfavorited Sucessfully" });
+		return res.json({ message: "Restaurant Unfavorited Sucessfully", restaurantId });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
