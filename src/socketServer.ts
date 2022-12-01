@@ -12,6 +12,7 @@ export const socketConnection = (httpServer: Server) => {
 	io.on("connection", (socket: Socket) => {
 		globalSocket = socket;
 		socket.on("join", (id: string) => {
+			if (!id) return;
 			socket.join(id);
 		});
 
