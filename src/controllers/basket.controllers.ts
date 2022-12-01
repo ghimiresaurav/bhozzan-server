@@ -63,11 +63,11 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 		if (req.user.role !== roleEnum.CUSTOMER) return res.status(400).send("Invalid User Role");
 
 		const userId = req.user._id;
-		const basketExist = await Baskets.findOne({ userId });
-		if (!basketExist)
+		const basketDishes = await Baskets.findOne({ userId });
+		if (!basketDishes)
 			return res.json({
 				message: "Basket dishes of specified restaurant of user",
-				basket: { restaurantId: [] },
+				basket: { restaurantId: [], basketCount: 0 },
 			});
 
 		const basket = await Baskets.aggregate([
@@ -101,7 +101,11 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 			},
 		]);
 
-		return res.json({ message: "Basket dishes of user", basket: basket[0] });
+		return res.json({
+			message: "Basket dishes of user",
+			basket: basket[0],
+			basketCount: basketDishes.dishes.length,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send(errorHandlers(error));
