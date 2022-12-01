@@ -208,3 +208,24 @@ export const getReservationsByTable: RequestHandler = async (req, res) => {
 		return res.status(500).send(errorHandlers(error));
 	}
 };
+
+export const getMyReservations: RequestHandler = async (req, res) => {
+	try {
+		if (req.user.role !== roleEnum.CUSTOMER)
+			return res.status(400).json({ message: "Invalid user role" });
+
+		const reservations = await Reservation.find({ reservedBy: req.user._id })
+			.populate("restaurant", "name address imageLink primaryPhoneNumber phoneNumbers")
+			.populate("tableId", "name seats rate")
+			.sort({
+				reservedSince: -1,
+			})
+			.select("reservedSince reservedUntil cost");
+		if (!reservations) return res.status(404).json({ message: "Reservations not found" });
+
+		return res.json({ message: "Your reservations", reservations });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send(errorHandlers(error));
+	}
+};

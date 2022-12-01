@@ -3,6 +3,7 @@ import {
 	cancleReservation,
 	createReservation,
 	getAllReservationsByTable,
+	getMyReservations,
 	getReservationsByTable,
 } from "../controllers/reservation.controllers";
 import { isAuthenticated, isManager } from "../middlewares/auth.middleware";
@@ -16,6 +17,7 @@ router.use(isAuthenticated);
 router.post("/create", createReservation);
 router.delete("/:reservationId", cancleReservation);
 router.get("/table/:tableId", getReservationsByTable);
+router.get("/my", getMyReservations);
 
 //-------------------------------MANAGER ROUTE-----------------------------------------------//
 router.use(isManager, isVerified);
