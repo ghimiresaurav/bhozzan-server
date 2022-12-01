@@ -6,14 +6,17 @@ const reservationSchema = new Schema<IReservation>({
 	tableId: {
 		type: ObjectId,
 		required: true,
+		ref: "Table",
 	},
-	restaurantId: {
+	restaurant: {
 		type: ObjectId,
 		required: true,
+		ref: "Restaurant",
 	},
 	reservedBy: {
 		type: ObjectId,
 		required: true,
+		ref: "User",
 	},
 	reservedSince: {
 		type: Date,
