@@ -3,6 +3,7 @@ import mongoose, { ObjectId } from "mongoose";
 import { orderStatusEnum } from "../enums/orderStatusEnum";
 import { roleEnum } from "../enums/roleEnum";
 import { IDish } from "../Interfaces/IDish";
+import Baskets from "../Models/Basket.model";
 import Dish from "../Models/Dish.model";
 import Order from "../Models/Order.model";
 import errorHandlers from "../utils/error-handlers";
@@ -14,6 +15,7 @@ export const placeOrder: RequestHandler = async (req, res) => {
 		if (req.user.role !== roleEnum.CUSTOMER)
 			return res.status(400).json({ message: "Invalid User Role" });
 
+		const userId = req.user._id;
 		const zzdishes: [{ dishId: string; quantity: number; restaurant?: string }] = req.body;
 
 		// Check if the restaurant id of the first dish is valid
@@ -31,10 +33,12 @@ export const placeOrder: RequestHandler = async (req, res) => {
 
 		// Create an array
 		const dishes = [];
+		const dishId = [];
 		let totalPrice: number = 0;
 
 		for (let i = 0; i < zzdishes.length; i++) {
 			const dish = zzdishes[i];
+			dishId.push(zzdishes[i].dishId);
 			const xdish: IDish | null = await Dish.findById(dish.dishId);
 			if (!xdish) break;
 
@@ -62,8 +66,9 @@ export const placeOrder: RequestHandler = async (req, res) => {
 		});
 
 		await order.save();
+		await Baskets.findOneAndUpdate({ userId }, { $pull: { dishes: { $in: dishId } } });
 
-		return res.json({ message: "Your order has been saved.", order });
+		return res.json({ message: "Your order has been saved.", order, dishId });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: errorHandlers(error) });
