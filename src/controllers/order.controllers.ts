@@ -64,6 +64,12 @@ export const placeOrder: RequestHandler = async (req, res) => {
 
 		await order.save();
 
+		// Notify restaurant staff of new order
+		sendNotification(order.restaurant.toString(), {
+			message: `New order`,
+			order,
+		});
+
 		return res.json({ message: "Your order has been saved.", order });
 	} catch (error) {
 		console.error(error);
@@ -165,6 +171,9 @@ export const rejectOrder: RequestHandler = async (req, res) => {
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
 
+		// Notify user that their order has been rejected by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been rejected`, order });
+
 		return res.json({ message: "Order has been rejected successfully.", order });
 	} catch (error) {
 		console.error(error);
@@ -190,6 +199,9 @@ export const dispatchOrder: RequestHandler = async (req, res) => {
 			}
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify user that their order has been dispatched by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been dispatched`, order });
 
 		return res.json({ message: "Order dispatched successfully", order });
 	} catch (error) {
@@ -272,6 +284,12 @@ export const cancelOrder: RequestHandler = async (req, res) => {
 			}
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify restaurant staff that a customer has canceled an order
+		sendNotification(order.restaurant.toString(), {
+			message: `Customer has canceled an order`,
+			order,
+		});
 
 		return res.json({ message: "Order Canceled Successfully", order });
 	} catch (error) {
