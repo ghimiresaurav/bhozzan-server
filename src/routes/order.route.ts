@@ -11,6 +11,7 @@ import {
 	serveOrder,
 } from "../controllers/order.controllers";
 import { isAuthenticated, isShipper } from "../middlewares/auth.middleware";
+import { isVerified } from "../middlewares/isVerified.middleware";
 
 const router: Router = Router();
 
@@ -22,7 +23,7 @@ router.get("/my-orders", getOrders);
 router.put("/cancel/:orderId", cancelOrder);
 
 //----------------------------------------SHIPPER ROUTE---------------------------------------------//
-router.use(isShipper);
+router.use(isShipper, isVerified);
 
 router.get("/restaurant", getRestaurantOrders);
 router.put("/accept/:orderId", acceptOrder);

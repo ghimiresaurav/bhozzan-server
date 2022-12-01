@@ -12,6 +12,7 @@ import {
 } from "../controllers/restaurant.controllers";
 import { addShipper } from "../controllers/restaurant.controllers";
 import { isAdmin, isAuthenticated, isManager } from "../middlewares/auth.middleware";
+import { isVerified } from "../middlewares/isVerified.middleware";
 
 const router: Router = Router();
 
@@ -24,13 +25,15 @@ router.get("/search/:searchQuery", searchRestaurantsByName);
 router.use(isAuthenticated);
 
 // ----------------------------MANAGER ROUTE------------------------------------
-router.use(isManager);
+router.use(isManager, isVerified);
+
 router.get("/shipper/view", viewShippers);
 router.post("/shipper/add", addShipper);
 router.put("/update", updateRestaurant);
 
 // ----------------------------ADMIN ROUTE--------------------------------------
 router.use(isAdmin);
+
 router.get("/list/all", getAllRestaurants);
 router.put("/verify/:restaurantId", verifyRestaurant);
 router.put("/refute/:restaurantId", refuteRestaurant);

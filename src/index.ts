@@ -2,7 +2,7 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import * as http from "http";
-import { Server, Socket } from "socket.io";
+// import { Server, Socket } from "socket.io";
 
 import connectDB from "./db/connectDB";
 import userRoute from "./routes/user.route";
@@ -13,9 +13,8 @@ import reservationRoute from "./routes/reservation.route";
 import basketRoute from "./routes/basket.route";
 import orderRoute from "./routes/order.route";
 import chatRoute from "./routes/chat.route";
-
-import { socketServer } from "./socketServer";
 import reviewRoute from "./routes/review.route";
+import { socketConnection } from "./socketServer";
 
 dotenv.config();
 // init express application
@@ -23,9 +22,7 @@ const app: Application = express();
 // init http server
 const httpServer: http.Server = http.createServer(app);
 // init socket server
-const io = new Server(httpServer, {
-	cors: { origin: "*" },
-});
+socketConnection(httpServer);
 connectDB();
 
 app.use(express.json({ limit: "1mb" }));
@@ -42,10 +39,5 @@ app.use("/review", reviewRoute);
 app.use("/chat", chatRoute);
 
 const PORT: number = parseInt(<string>process.env.PORT) || 7000;
-
-// Use socket server when user connects by socket
-io.on("connection", (socket) => {
-	socketServer(socket);
-});
 
 httpServer.listen(PORT, () => console.log(`SERVER RUNNING ON PORT ${PORT}`));

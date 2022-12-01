@@ -6,6 +6,7 @@ import { IDish } from "../Interfaces/IDish";
 import Baskets from "../Models/Basket.model";
 import Dish from "../Models/Dish.model";
 import Order from "../Models/Order.model";
+import { sendNotification } from "../socketServer";
 import errorHandlers from "../utils/error-handlers";
 import isValidObjectId from "../utils/isValidObjectId";
 
@@ -68,7 +69,13 @@ export const placeOrder: RequestHandler = async (req, res) => {
 		await order.save();
 		await Baskets.findOneAndUpdate({ userId }, { $pull: { dishes: { $in: dishId } } });
 
-		return res.json({ message: "Your order has been saved.", order, dishId });
+		// Notify restaurant staff of new order
+		sendNotification(order.restaurant.toString(), {
+			message: `New order`,
+			order,
+		});
+
+		return res.json({ message: "Your order has been saved.", order });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: errorHandlers(error) });
@@ -142,6 +149,9 @@ export const acceptOrder: RequestHandler = async (req, res) => {
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
 
+		// Notify user that their order has been accepted by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been accepted`, order });
+
 		return res.json({ message: "Order has been accepted successfully.", order });
 	} catch (error) {
 		console.error(error);
@@ -165,6 +175,9 @@ export const rejectOrder: RequestHandler = async (req, res) => {
 			{ $set: { status: orderStatusEnum.REJECTED } }
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify user that their order has been rejected by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been rejected`, order });
 
 		return res.json({ message: "Order has been rejected successfully.", order });
 	} catch (error) {
@@ -191,6 +204,9 @@ export const dispatchOrder: RequestHandler = async (req, res) => {
 			}
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify user that their order has been dispatched by the restaurant
+		sendNotification(order.userId.toString(), { message: `Your order has been dispatched`, order });
 
 		return res.json({ message: "Order dispatched successfully", order });
 	} catch (error) {
@@ -273,6 +289,12 @@ export const cancelOrder: RequestHandler = async (req, res) => {
 			}
 		);
 		if (!order) return res.status(404).json({ message: "Order not found" });
+
+		// Notify restaurant staff that a customer has canceled an order
+		sendNotification(order.restaurant.toString(), {
+			message: `Customer has canceled an order`,
+			order,
+		});
 
 		return res.json({ message: "Order Canceled Successfully", order });
 	} catch (error) {

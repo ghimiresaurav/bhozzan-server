@@ -6,6 +6,7 @@ import {
 	getReservationsByTable,
 } from "../controllers/reservation.controllers";
 import { isAuthenticated, isManager } from "../middlewares/auth.middleware";
+import { isVerified } from "../middlewares/isVerified.middleware";
 
 const router: Router = Router();
 
@@ -17,7 +18,7 @@ router.delete("/:reservationId", cancleReservation);
 router.get("/table/:tableId", getReservationsByTable);
 
 //-------------------------------MANAGER ROUTE-----------------------------------------------//
-router.use(isManager);
+router.use(isManager, isVerified);
 
 router.get("/table/all/:tableId", getAllReservationsByTable);
 
