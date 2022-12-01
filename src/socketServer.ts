@@ -26,7 +26,7 @@ export const socketConnection = (httpServer: Server) => {
 	});
 };
 
-// Send notification to users on events
-export const sendNotification = (user: string, notification: IOrderNotification) => {
-	globalSocket.in(user).emit("notification", notification);
+// Send notification to users in the room on events
+export const sendNotification = (room: string, notification: IOrderNotification) => {
+	globalSocket.in(room).emit("notification", notification);
 };
