@@ -66,8 +66,8 @@ export const createReservation: RequestHandler = async (req, res) => {
 		const table = await Table.findById(tableId);
 		if (!table) return res.status(404).send("Table not found");
 
-		const restaurantId = await Restaurant.findById(table.restaurantId);
-		if (!restaurantId) return res.status(404).send("Restaurant not found");
+		const restaurant = await Restaurant.findById(table.restaurantId);
+		if (!restaurant) return res.status(404).send("Restaurant not found");
 
 		const reservationData: IReservationDTO = req.body;
 
@@ -127,7 +127,7 @@ export const createReservation: RequestHandler = async (req, res) => {
 		const reservation: IReservation = new Reservation({
 			...reservationData,
 			reservedBy: req.user._id,
-			restaurantId, //reservation object
+			restaurant: restaurant._id, //reservation object
 			cost,
 		});
 		await reservation.save();
