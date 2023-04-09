@@ -7,7 +7,8 @@
     "watch-ts": "tsc --watch --preserveWatchOutput",
     "tsc": "tsc",
     "start:dev": "NODE_ENV=dev nodemon dist/index",
-    "start": "NODE_ENV=prod node dist/index.js"
+    "start": "NODE_ENV=prod node dist/index.js",    
+    "saveUs": "NODE_ENV=dev node dist/scripts/savior"
   },
   "keywords": [
     "bhozzan",
