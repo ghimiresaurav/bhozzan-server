@@ -89,6 +89,14 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 					from: "restaurants",
 					localField: "dish.restaurant",
 					foreignField: "_id",
+					let: { dish: "$dishes" },
+					pipeline: [
+						{
+							$addFields: {
+								count: { $size: { $setIntersection: ["$$dish", "$dishes"] } },
+							},
+						},
+					],
 					as: "restaurant",
 				},
 			},
@@ -97,6 +105,7 @@ export const getBasketRestaurant: RequestHandler = async (req, res) => {
 					"restaurant._id": 1,
 					"restaurant.name": 1,
 					"restaurant.address": 1,
+					"restaurant.count": 1,
 				},
 			},
 		]);
